@@ -5,7 +5,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { queryClient } from './apis/queryClient'; // 분리한 인스턴스 재사용
 import App from './App';
-import './index.css';
+import './styles/global.css';
 
 const container = document.getElementById('root');
 if (!container) throw new Error('Root element "#root" not found');
