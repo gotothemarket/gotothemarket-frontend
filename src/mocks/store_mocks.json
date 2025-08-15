@@ -1,8 +1,8 @@
 {
   "store": {
-    "store_id": 11,
-    "member_id": 101,
-    "market_id": 5,
+    "store_id": 1,
+    "member_id": 1,
+    "market_id": 1,
     "store_type": 1,
     "type_name": "식당",
     "store_name": "종로곱창",
@@ -17,27 +17,27 @@
 
   "photos": [
     {
-      "photo_id": 301,
+      "photo_id": 1,
       "photo_url": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=400&fit=crop&crop=center",
       "created_at": "2025-06-13T12:05:41+09:00"
     },
     {
-      "photo_id": 302,
+      "photo_id": 2,
       "photo_url": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=400&fit=crop&crop=center",
       "created_at": "2025-06-13T12:05:41+09:00"
     },
     {
-      "photo_id": 303,
+      "photo_id": 3,
       "photo_url": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=400&fit=crop&crop=center",
       "created_at": "2025-06-13T12:07:22+09:00"
     },
     {
-      "photo_id": 304,
+      "photo_id": 4,
       "photo_url": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=400&fit=crop&crop=center",
       "created_at": "2025-06-13T12:07:22+09:00"
     },
     {
-      "photo_id": 305,
+      "photo_id": 5,
       "photo_url": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=400&fit=crop&crop=center",
       "created_at": "2025-06-13T12:07:22+09:00"
     }
@@ -45,17 +45,17 @@
 
   "review_summary": {
     "average_rating": 4.7,
-    "review_count": 1
+    "review_count": 3
   },
 
   "reviews": [
     {
-      "review_id": 9001,
-      "member_id": 12,
+      "review_id": 1,
+      "member_id": 1,
       "member_nickname": "오랑우탄제임스",
       "badges": [
         {
-          "badge_id": 3,
+          "badge_id": 1,
           "badge_name": "리뷰개척가",
           "badge_icon": "/src/assets/뱃지_리뷰개척가.svg"
         }
@@ -65,8 +65,8 @@
       "created_at": "2025-06-14T00:00:00+09:00"
     },
     {
-      "review_id": 9002,
-      "member_id": 15,
+      "review_id": 2,
+      "member_id": 2,
       "member_nickname": "곱창러버",
       "badges": [
         {
@@ -80,14 +80,14 @@
       "created_at": "2025-06-13T18:30:00+09:00"
     },
     {
-      "review_id": 9003,
-      "member_id": 22,
+      "review_id": 3,
+      "member_id": 3,
       "member_nickname": "음식평론가",
       "badges": [
         {
           "badge_id": 2,
-          "badge_name": "리뷰개척가",
-          "badge_icon": "/src/assets/뱃지_리뷰개척가.svg"
+          "badge_name": "성실한기록가",
+          "badge_icon": "/src/assets/뱃지_성실한기록가.svg"
         }
       ],
       "rating": 4.5,

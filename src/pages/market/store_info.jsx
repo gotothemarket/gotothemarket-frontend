@@ -60,6 +60,7 @@ export default function StoreInfo() {
           photos={photos}
           ctaLabel="사진 제보하기"
           onCta={handlePhotoReport}
+          storeId={store.store_id}
         />
 
         <section className="pt-[3rem] px-[1.5rem]">
