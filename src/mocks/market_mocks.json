@@ -3,7 +3,7 @@
   "status": 200,
   "data": {
     "market": {
-      "market_id": 1,
+      "market_id": 12,
       "market_name": "상도전통시장",
       "market_address": "서울 동작구 상도로47길 8",
       "market_coord": { "lat": 37.504321, "lng": 126.95321 },

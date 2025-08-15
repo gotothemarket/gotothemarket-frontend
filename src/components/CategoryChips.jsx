@@ -1,4 +1,5 @@
 import React from 'react';
+import CategoryChip from './CategoryChip';
 import produceIcon from '../assets/과일야채.svg';
 import seafoodIcon from '../assets/수산.svg';
 import restaurantIcon from '../assets/요리.svg';
@@ -19,38 +20,22 @@ const CATEGORIES = [
   { id: 'bakery', label: '빵/떡', icon: bakeryIcon },
 ];
 
-export default function CategoryChips({ value, onChange }) {
+const CategoryChips = ({ value, onChange }) => {
   return (
-    <div className="w-full">
-      {/* 가로 스크롤 영역 */}
-      <div
-        className="flex gap-3 px-4 py-2 overflow-x-auto scrollbar-hidden"
-        style={{
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-          WebkitScrollbar: { display: 'none' },
-        }}
-      >
-        {CATEGORIES.map((c) => {
-          const selected = value === c.id;
-          return (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => onChange?.(selected ? null : c.id)}
-              className={[
-                'shrink-0 inline-flex items-center gap-2 rounded-[10px] px-4 py-2.5 text-sm shadow-sm transition-colors',
-                selected
-                  ? 'bg-[#FFF8C8] ring-[0.8px] ring-[#FFEC74]'
-                  : 'bg-white hover:bg-gray-50 ring-[0.8px] ring-gray-400',
-              ].join(' ')}
-            >
-              <img src={c.icon} alt={c.label} className="w-[1.4rem] h-[1.4rem]" />
-              <span className="whitespace-nowrap">{c.label}</span>
-            </button>
-          );
-        })}
-      </div>
+    <div className="flex gap-2 overflow-x-auto pb-2">
+      {CATEGORIES.map((category) => (
+        <CategoryChip
+          key={category.id}
+          id={category.id}
+          label={category.label}
+          icon={category.icon}
+          isSelected={value === category.id}
+          onClick={onChange}
+          className="flex-shrink-0"
+        />
+      ))}
     </div>
   );
-}
+};
+
+export default CategoryChips;

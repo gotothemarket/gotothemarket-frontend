@@ -20,7 +20,7 @@ export default function Navbar() {
         {/* 내비게이션 */}
         <nav className="flex w-full items-center justify-between">
           <NavLink
-            to="/stores"
+            to="/report/location"
             className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors"
           >
             {({ isActive }) => (

@@ -1,4 +1,3 @@
-// /src/pages/MarketInfo.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,7 +7,6 @@ import InfoRows from './components/InfoRows';
 import PhotoStrip from './components/PhotoStrip';
 import MapBox from './components/MapBox';
 
-// 👇 네가 준 목업 구조 그대로 import
 import marketPayload from '../../mocks/market_mocks.json';
 import marketIcon from '../../assets/market_icon.svg';
 
@@ -47,7 +45,8 @@ export default function MarketInfo() {
 
       <div className="px-4 pb-12">
         <EntityHeader
-          icon={marketIcon} // 필요 시 시장 아이콘 경로로 교체
+          icon={marketIcon}
+          className="h-full" // 필요 시 시장 아이콘 경로로 교체
           title={market.market_name}
           subtitle={market.market_address} // 상단 서브텍스트는 주소 노출
           // bookmark 생략 (원하면 bookmark, onToggleBookmark 추가)

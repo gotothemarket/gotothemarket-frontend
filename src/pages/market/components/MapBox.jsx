@@ -22,7 +22,7 @@ export default function MapBox({ title, lat, lng }) {
   }, [KAKAO_KEY, lat, lng]);
 
   return (
-    <section className="pt-[3rem] pb-[2rem] px-[1.5rem]">
+    <section className="pt-[3rem] pb-[10rem] px-[1.5rem]">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
       <div ref={ref} className="w-full h-[14.6rem] rounded-[2rem] overflow-hidden" />
     </section>

@@ -1,6 +1,6 @@
-// /src/features/detail/DetailSheet.jsx
 import React, { useEffect, useState } from 'react';
-import HomeBottomsheet from '../components/HomeBottomsheet';
+import { useNavigate } from 'react-router-dom';
+import HomeBottomsheet from '../components/HomeBottomsheet'; // 업데이트된 컴포넌트
 import EntityHeader from '../pages/market/components/EntityHeader';
 import InfoRows from '../pages/market/components/InfoRows';
 import PhotoStrip from '../pages/market/components/PhotoStrip';
@@ -8,6 +8,7 @@ import marketIcon from '../assets/market_icon.svg';
 
 // selected: { type: 'store'|'market', id?, data? }
 export default function DetailSheet({ selected, onClose, showMap = false }) {
+  const navigate = useNavigate();
   const open = !!selected;
 
   const [{ loading, error, payload }, setState] = useState({
@@ -15,6 +16,21 @@ export default function DetailSheet({ selected, onClose, showMap = false }) {
     error: null,
     payload: null,
   });
+
+  // 전체 페이지로 전환하는 함수
+  const handleFullPage = () => {
+    if (!selected) return;
+
+    // 부드러운 전환을 위한 약간의 지연
+    setTimeout(() => {
+      if (selected.type === 'store') {
+        navigate(`/stores/${selected.id}`);
+      } else if (selected.type === 'market') {
+        navigate(`/markets/${selected.id}`);
+      }
+      onClose(); // 모달 닫기
+    }, 100);
+  };
 
   useEffect(() => {
     let cancel = false;
@@ -50,9 +66,26 @@ export default function DetailSheet({ selected, onClose, showMap = false }) {
   }, [selected]);
 
   return (
-    <HomeBottomsheet open={open} onClose={onClose} height="78vh">
-      {loading && <div className="p-6 text-center text-gray-500">불러오는 중…</div>}
-      {error && <div className="p-6 text-center text-red-500">불러오기에 실패했어요</div>}
+    <HomeBottomsheet open={open} onClose={onClose} onFullPage={handleFullPage}>
+      {loading && (
+        <div className="p-6 text-center text-gray-500 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mr-3"></div>
+          불러오는 중…
+        </div>
+      )}
+
+      {error && (
+        <div className="p-6 text-center text-red-500">
+          <div className="mb-2">⚠️</div>
+          불러오기에 실패했어요
+          <button
+            onClick={() => window.location.reload()}
+            className="block mx-auto mt-2 px-4 py-2 bg-red-100 text-red-600 rounded-lg text-sm"
+          >
+            다시 시도
+          </button>
+        </div>
+      )}
 
       {!loading && !error && selected?.type === 'store' && payload && (
         <StoreDetail payload={payload} />
@@ -78,10 +111,11 @@ function StoreDetail({ payload }) {
       value: `${formatHHMM(store.opening_hours)} - ${formatHHMM(store.closing_hours)}`,
     },
     { label: '연락처', value: store.phone_number },
+    { label: '주소', value: store.store_address || '정보 없음' },
   ];
 
   return (
-    <div className="px-2">
+    <div className="px-2 pb-6">
       <EntityHeader
         icon={store.store_icon}
         title={store.store_name}
@@ -92,7 +126,9 @@ function StoreDetail({ payload }) {
       <section>
         <div className="flex justify-between px-[1.5rem] pt-[2.4rem]">
           <h3 className="text-lg font-semibold text-gray-900">가게 정보</h3>
-          <button className="text-sm text-main-1000">수정하기</button>
+          <button className="text-sm text-main-1000 hover:text-main-800 transition-colors">
+            수정하기
+          </button>
         </div>
         <InfoRows rows={rows} />
       </section>
@@ -123,10 +159,11 @@ function MarketDetail({ payload }) {
     { label: '개업연수', value: market.opening_years ? `${market.opening_years}년` : '정보 없음' },
     { label: '개설주기', value: market.opening_cycle || '정보 없음' },
     { label: '점포 수', value: `${market.fixed_store_count ?? 0}개${stallText}` },
+    { label: '운영시간', value: market.operating_hours || '정보 없음' },
   ];
 
   return (
-    <div className="px-2">
+    <div className="px-2 pb-6">
       <EntityHeader icon={marketIcon} title={market.market_name} subtitle={market.market_address} />
 
       <section className="">
@@ -134,6 +171,28 @@ function MarketDetail({ payload }) {
       </section>
 
       <PhotoStrip title="시장 대표 사진" photos={normalizePhotos(photos)} />
+
+      {/* 주요 상점 미리보기 */}
+      {market.featured_stores && market.featured_stores.length > 0 && (
+        <section className="mt-6">
+          <div className="px-[1.5rem]">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">주요 상점</h3>
+            <div className="space-y-2">
+              {market.featured_stores.slice(0, 3).map((store, index) => (
+                <div key={index} className="flex items-center p-3 bg-gray-50 rounded-lg">
+                  <div className="w-10 h-10 bg-gray-200 rounded-full mr-3 flex items-center justify-center">
+                    🏪
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">{store.name}</p>
+                    <p className="text-xs text-gray-500">{store.category}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* 필요 시 지도를 시트에서도 노출
       {showMap && (
@@ -145,10 +204,12 @@ function MarketDetail({ payload }) {
 
 /* ============ helpers ============ */
 function formatHHMM(time) {
+  if (!time) return '정보 없음';
   const h = Math.floor(time / 100);
   const m = time % 100;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
+
 function normalizePhotos(photos) {
   return photos.map((p, i) => ({ photo_id: p.photo_id ?? i, photo_url: p.photo_url }));
 }
