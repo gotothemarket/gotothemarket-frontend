@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import homeIcon from '../assets/home_active.svg';
 import homeInactiveIcon from '../assets/home_default.svg';
 import writeIcon from '../assets/write_active.svg';
@@ -7,6 +7,13 @@ import profileActiveIcon from '../assets/profile_active.svg';
 import profileInactiveIcon from '../assets/profile_default.svg';
 
 export default function Navbar() {
+  const location = useLocation();
+
+  // 홈 페이지('/')에서만 Navbar 표시
+  if (location.pathname !== '/') {
+    return null;
+  }
+
   return (
     <header className="relative z-50 bg-white border-t border-gray-200 w-full pb-[4rem] pt-[1rem]">
       <div className="mx-auto max-w-screen-xl h-full px-[5.3rem] flex items-center justify-between">

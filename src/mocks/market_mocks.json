@@ -1,0 +1,29 @@
+{
+  "success": true,
+  "status": 200,
+  "data": {
+    "market": {
+      "market_id": 1,
+      "market_name": "상도전통시장",
+      "market_address": "서울 동작구 상도로47길 8",
+      "market_coord": { "lat": 37.504321, "lng": 126.95321 },
+
+      "opening_years": 1979,
+      "opening_cycle": "상설(매일)",
+
+      "fixed_store_count": 73,
+      "stall_store_count": 0,
+      "parking": true,
+      "toilet": true
+    },
+
+    "photos": [
+      {
+        "photo_url": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=400&fit=crop&crop=center"
+      },
+      {
+        "photo_url": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=400&fit=crop&crop=center"
+      }
+    ]
+  }
+}

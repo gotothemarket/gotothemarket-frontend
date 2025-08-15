@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    --min-width: 330px;
-    --max-width: 360px;
+    --min-width: 360px;
+    --max-width: 430px;
   }
 
   #root {
@@ -13,10 +13,22 @@
     min-width: var(--min-width);
     max-width: var(--max-width);
     min-height: 100dvh;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE, Edge */
+  }
+
+  #root::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
   }
 
   html {
     background-color: white;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE, Edge */
+  }
+
+  html::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
   }
 
   html,
@@ -42,6 +54,7 @@
     scroll-behavior: smooth;
     box-shadow: 0px 0px 50px 0px rgba(0, 0, 0, 0.1);
     scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE, Edge */
   }
 
   body {
@@ -49,6 +62,16 @@
   }
 
   body::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
+  }
+
+  /* 모든 요소에 대한 스크롤바 숨김 */
+  * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE, Edge */
+  }
+
+  *::-webkit-scrollbar {
     display: none; /* Chrome, Safari */
   }
 }

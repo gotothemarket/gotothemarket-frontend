@@ -1,7 +1,7 @@
 @theme {
   /* Main */
-  --color-main-1000: #0e4fcc;
-  --color-main-900: #1263ff;
+  --color-main-1000: #ff9c1f;
+  --color-main-900: #fff8c8;
   --color-main-800: #4182ff;
   --color-main-700: #5992ff;
   --color-main-600: #71a1ff;
@@ -37,8 +37,9 @@
   --color-gray-500: #acadae;
   --color-gray-400: #cacbcd;
   --color-gray-300: #e4e4e6;
-  --color-gray-200: #f1f1f3;
-  --color-gray-100: #f6f7f9;
+  --color-gray-200: #e2e2e2;
+  --color-gray-100: #969696;
+  --color-gray-50: #f8f8f8;
   --color-gray-white: #ffffff;
 
   /* Team */

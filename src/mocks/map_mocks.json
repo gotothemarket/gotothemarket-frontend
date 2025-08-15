@@ -1,0 +1,19 @@
+{
+  "success": true,
+  "status": 200,
+  "data": {
+    "road_address": "서울특별시 동작구 동작대로29길 13",
+    "pins": {
+      "stores": [
+        { "store_id": 101, "store_coord": { "lat": 37.572394, "lng": 126.987621 } },
+        { "store_id": 102, "store_coord": { "lat": 37.57192, "lng": 126.98621 } },
+        { "store_id": 103, "store_coord": { "lat": 37.4969, "lng": 126.98231 } },
+        { "store_id": 104, "store_coord": { "lat": 37.4971, "lng": 126.983 } }
+      ],
+      "markets": [
+        { "market_id": 12, "market_coord": { "lat": 37.49612, "lng": 126.98231 } },
+        { "market_id": 13, "market_coord": { "lat": 37.49615, "lng": 126.98087 } }
+      ]
+    }
+  }
+}
