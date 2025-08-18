@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import storeData from '../../mocks/store_mocks.json';
-import backIcon from '../../assets/left_arrow_white.svg';
+import Header from '../../components/Header';
 import trashIcon from '../../assets/trash_icon.svg';
 import closeIcon from '../../assets/close_icon_white.svg';
 
@@ -26,19 +26,7 @@ const StoreGallery = () => {
   return (
     <div className="h-full bg-black">
       {/* 헤더 */}
-      <div className="sticky top-0 bg-black text-white px-[1.3rem] pt-[6.2rem]  pb-[1.2rem] z-10">
-        <div className="flex items-center justify-center">
-          <button
-            onClick={handleBack}
-            className="absolute left-[1.2rem] p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <img src={backIcon} alt="뒤로가기" />
-          </button>
-          <h1 className="text-[1.7rem] font-medium text-[#FEFEFE] text-center font-['Pretendard_Variable'] leading-normal">
-            가게 사진
-          </h1>
-        </div>
-      </div>
+      <Header title="가게 사진" onBack={handleBack} variant="dark" />
 
       {/* 갤러리 그리드 */}
       <div className="p-4 pb-20">

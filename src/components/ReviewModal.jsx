@@ -82,9 +82,14 @@ const ReviewModal = ({ isOpen, onClose, onSubmit }) => {
         >
           {/* 헤더 */}
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">시장 속 보물을 찾으셨나요?</h2>
+            <h2 className="text-body1 text-gray-900">시장 속 보물을 찾으셨나요?</h2>
             <button onClick={handleClose} className="p-2 text-gray-400 hover:text-gray-600">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-[1.56rem] h-[1.56rem]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 19 19"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -114,11 +119,11 @@ const ReviewModal = ({ isOpen, onClose, onSubmit }) => {
               value={reviewText}
               onChange={(e) => setReviewText(e.target.value)}
               placeholder="리뷰를 작성해주세요"
-              className="w-full h-32 p-4 pr-12 bg-gray-50 rounded-[1rem] "
+              className="w-full h-32 p-4 pr-12 text-caption4 bg-gray-50 rounded-[1rem] "
               maxLength={300}
             />
             {!reviewText && (
-              <div className="absolute top-5 left-40">
+              <div className="absolute top-4 left-47">
                 <img src={reviewWriteIcon} alt="작성 아이콘" className="w-4 h-4" />
               </div>
             )}
@@ -131,10 +136,10 @@ const ReviewModal = ({ isOpen, onClose, onSubmit }) => {
           {/* 제출 */}
           <button
             onClick={handleSubmit}
-            className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-colors duration-200 ${
+            className={`w-full py-[1.6rem] px-6 rounded-[1rem] font-semibold text-body9 transition-colors duration-200 ${
               rating && reviewText.trim()
-                ? 'bg-main-1000 text-white'
-                : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                ? 'bg-primary-1000 text-white'
+                : 'bg-secondary-600 text-white cursor-not-allowed'
             }`}
             disabled={!rating || !reviewText.trim()}
           >

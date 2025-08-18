@@ -1,76 +1,29 @@
 @theme {
-  /* Main */
-  --color-main-1000: #ff9c1f;
-  --color-main-900: #fff8c8;
-  --color-main-800: #ffaa00;
-  --color-main-700: #ff8513;
-  --color-main-600: #71a1ff;
-  --color-main-500: #a6c5ff;
-  --color-main-400: #b8d0ff;
-  --color-main-300: #d0e0ff;
-  --color-main-200: #e7efff;
-  --color-main-100: #e7efff;
+  /* Primary Colors */
+  --color-primary-1000: #ff9c1f;
+  --color-primary-900: #fea900;
+  --color-primary-800: #ff8513;
+  --color-primary-700: #ff6310;
+  --color-primary-600: #dc4c1c;
+  --color-primary-500: #ffec74;
+  --color-primary-400: #fff8c8;
 
-  /* Sub */
-  --color-sub-1000: #a6cc4b;
-  --color-sub-900: #cfff5e;
-  --color-sub-800: #d9ff7e;
-  --color-sub-700: #ddff8e;
-  --color-sub-600: #e2ff9e;
-  --color-sub-500: #e7ffae;
-  --color-sub-400: #f1ffcf;
-  --color-sub-300: #f5ffdf;
-  --color-sub-200: #faffef;
-  --color-sub-100: #fdfff7;
+  /* Secondary Colors */
+  --color-secondary-1000: #0a0a0a;
+  --color-secondary-900: #252525;
+  --color-secondary-800: #5a5a5a;
+  --color-secondary-700: #787878;
+  --color-secondary-600: #b5b5b5;
+  --color-secondary-500: #d9d9d9;
+  --color-secondary-400: #f8f8f8;
+  --color-secondary-300: #fefefe;
 
-  /* Etc */
-  --color-background: #f6f7f9;
+  /* Background Colors */
+  --color-background: #fefefe;
+  --color-background-secondary: #f8f8f8;
+
+  /* Overlay */
   --color-overlay: rgba(0, 0, 0, 0.3);
-  --color-kakao-brand: #fee500;
-
-  /* Grayscale */
-  --color-gray-black: #1a1a1a;
-  --color-gray-900: #3a3a3b;
-  --color-gray-800: #464748;
-  --color-gray-700: #656667;
-  --color-gray-600: #868789;
-  --color-gray-500: #acadae;
-  --color-gray-400: #cacbcd;
-  --color-gray-300: #e4e4e6;
-  --color-gray-200: #e2e2e2;
-  --color-gray-100: #969696;
-  --color-gray-50: #f8f8f8;
-  --color-gray-white: #ffffff;
-
-  /* Team */
-  --color-team-ncdinos-background: #fff4d1;
-  --color-team-ncdinos-text: #cc5f00;
-  --color-team-doosan-background: #d6daff;
-  --color-team-doosan-text: #000d9d;
-  --color-team-ktwiz-background: #ffd7d9;
-  --color-team-ktwiz-text: #ed1b24;
-  --color-team-ssglanders-background: #fff2ca;
-  --color-team-ssglanders-text: #d07300;
-  --color-team-kiwoom-background: #ffdbf1;
-  --color-team-kiwoom-text: #eb008f;
-  --color-team-lottegiants-background: #cfdeff;
-  --color-team-lottegiants-text: #092442;
-  --color-team-hanhwaeagles-background: #fff1ea;
-  --color-team-hanhwaeagles-text: #fb4c00;
-  --color-team-lgtwins-background: #ffcbdc;
-  --color-team-lgtwins-text: #c00c5a;
-  --color-team-kiatigers-background: #ffc6d0;
-  --color-team-kiatigers-text: #ea0029;
-  --color-team-samsunglions-background: #cceaff;
-  --color-team-samsunglions-text: #0063b1;
-
-  /* Week */
-  --color-week-red: #ec5d5d;
-  --color-week-blue: #397bff;
-
-  /* State */
-  --color-state-success: #00c400;
-  --color-state-error: #ef2626;
 
   /* Z-Index */
   --z-header: 6;
@@ -81,13 +34,21 @@
   --z-card-profile-2: 3;
   --z-card-profile-3: 2;
   --z-card-profile-4: 1;
-
-  /* Z-Index (Negative) */
   --z-negative-1: -1;
   --z-negative-5: -5;
 }
 
 @layer utilities {
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(0.5rem) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
   /* Shadow */
   .shadow-1 {
     box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
@@ -99,63 +60,317 @@
 
   .matching-modal-backdrop {
     @apply fixed top-0 left-0 w-full h-full whitespace-pre-line;
-    background: var(--etc-overlay, rgba(0, 0, 0, 0.3));
+    background: var(--color-overlay);
     backdrop-filter: blur(2px);
   }
 
-  /* Typography */
+  /* Typography - Heading */
+  .heading1 {
+    font-weight: 600;
+    font-size: 3.3rem;
+    line-height: 2.8rem;
+  }
+
+  .heading2 {
+    font-weight: 700;
+    font-size: 2.7rem;
+    line-height: 2.3rem;
+  }
+
+  .heading3 {
+    font-weight: 600;
+    font-size: 2.7rem;
+    line-height: 2.3rem;
+  }
+
+  .heading4 {
+    font-weight: 600;
+    font-size: 3rem;
+    line-height: 2rem;
+  }
+
+  .heading5 {
+    font-weight: 600;
+    font-size: 2.4rem;
+    line-height: 2rem;
+  }
+
+  /* Typography - Body */
+  .body1 {
+    font-weight: 600;
+    font-size: 2rem;
+  }
+
+  .body2 {
+    font-weight: 600;
+    font-size: 1.9rem;
+    line-height: 1.6rem;
+  }
+
+  .body3 {
+    font-weight: 500;
+    font-size: 1.9rem;
+    line-height: 1.6rem;
+  }
+
+  .body4 {
+    font-weight: 500;
+    font-size: 3rem;
+    line-height: 1.4rem;
+  }
+
+  .body5 {
+    font-weight: 600;
+    font-size: 1.7rem;
+    line-height: 1.4rem;
+  }
+
+  .body6 {
+    font-weight: 500;
+    font-size: 1.7rem;
+    line-height: 1.4rem;
+  }
+
+  .body7 {
+    font-weight: 600;
+    font-size: 1.6rem;
+    line-height: 1.3rem;
+  }
+
+  .body8 {
+    font-weight: 400;
+    font-size: 1.6rem;
+    line-height: 1.3rem;
+  }
+
+  .body9 {
+    font-weight: 600;
+    font-size: 1.4rem;
+    line-height: 1.2rem;
+  }
+
+  .body10 {
+    font-weight: 400;
+    font-size: 1.4rem;
+    line-height: 1.2rem;
+  }
+
+  /* Typography - Caption */
+  .caption1 {
+    font-weight: 600;
+    font-size: 1.3rem;
+    line-height: 1.1rem;
+  }
+
+  .caption2 {
+    font-weight: 500;
+    font-size: 1.3rem;
+    line-height: 1.1rem;
+  }
+
+  .caption3 {
+    font-weight: 400;
+    font-size: 1.3rem;
+    line-height: 1.1rem;
+  }
+
+  .caption4 {
+    font-weight: 400;
+    font-size: 1.2rem;
+    line-height: 1rem;
+  }
+
+  /* Legacy Typography Classes (기존 코드와의 호환성을 위해 유지) */
   .title_24_sb {
     font-weight: 600;
     font-size: 2.4rem;
-    line-height: 3.6rem;
-    letter-spacing: -0.1rem;
+    line-height: 2rem;
   }
 
   .head_20_sb {
-    font-weight: 600;
+    font-weight: 500;
     font-size: 2rem;
-    line-height: 3rem;
+    line-height: 1.7rem;
   }
 
   .head_20_m {
     font-weight: 500;
     font-size: 2rem;
-    line-height: 3rem;
+    line-height: 1.7rem;
   }
 
   .subhead_18_sb {
     font-weight: 600;
-    font-size: 1.8rem;
-    line-height: 2.7rem;
+    font-size: 1.9rem;
+    line-height: 1.6rem;
   }
 
   .body_16_b {
-    font-weight: 700;
+    font-weight: 600;
     font-size: 1.6rem;
-    line-height: 2.4rem;
+    line-height: 1.3rem;
   }
 
   .body_16_m {
-    font-weight: 500;
+    font-weight: 400;
     font-size: 1.6rem;
-    line-height: 2.4rem;
+    line-height: 1.3rem;
   }
 
   .cap_14_sb {
-    font-weight: 500;
+    font-weight: 600;
     font-size: 1.4rem;
-    line-height: 2.1rem;
+    line-height: 1.2rem;
   }
 
   .cap_14_m {
-    font-weight: 500;
+    font-weight: 400;
     font-size: 1.4rem;
-    line-height: 2.1rem;
+    line-height: 1.2rem;
   }
 
   .cap_12_m {
-    font-weight: 500;
+    font-weight: 400;
     font-size: 1.2rem;
-    line-height: 1.8rem;
+    line-height: 1rem;
   }
+}
+
+/* Pretendard Variable 폰트 정의 */
+@font-face {
+  font-family: 'Pretendard Variable';
+  src: url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard/dist/web/static/woff2/PretendardVariable.woff2')
+    format('woff2-variations');
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 타이포그래피 스타일 */
+.text-main-title {
+  font-family: 'Pretendard Variable';
+  font-size: 2rem;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 3rem; /* 150% */
+}
+
+.text-heading-large {
+  font-family: 'Pretendard Variable';
+  font-size: 2.3rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.text-heading-medium {
+  font-family: 'Pretendard Variable';
+  font-size: 2rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 3rem; /* 150% */
+}
+
+.text-body-large {
+  font-family: 'Pretendard Variable';
+  font-size: 1.4rem;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+}
+
+.text-body-medium {
+  font-family: 'Pretendard Variable';
+  font-size: 1.2rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+}
+
+.text-body-secondary {
+  font-family: 'Pretendard Variable';
+  font-size: 1.4rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+}
+
+.text-caption-bold {
+  font-family: 'Pretendard Variable';
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1.1rem; /* 110% */
+}
+
+.text-body-bold {
+  font-family: 'Pretendard Variable';
+  font-size: 1.6rem;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+}
+
+.text-body-small-bold {
+  font-family: 'Pretendard Variable';
+  font-size: 1.2rem;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+}
+
+.text-body-small-regular {
+  font-family: 'Pretendard Variable';
+  font-size: 1.2rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+}
+
+.text-accent-bold {
+  font-family: 'Pretendard Variable';
+  font-size: 1.4rem;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+}
+
+.text-accent-large {
+  font-family: 'Pretendard Variable';
+  font-size: 2.4rem;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 3.6rem; /* 150% */
+}
+
+.text-accent-medium {
+  font-family: 'Pretendard Variable';
+  font-size: 2.16rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 3.6rem; /* 166.667% */
+}
+
+.text-white-bold {
+  font-family: 'Pretendard Variable';
+  font-size: 1.8rem;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+}
+
+.text-white-large {
+  font-family: 'Pretendard Variable';
+  font-size: 2.8rem;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+}
+
+.text-orange-medium {
+  font-family: 'Pretendard Variable';
+  font-size: 1.1rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
 }

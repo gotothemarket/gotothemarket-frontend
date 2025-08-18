@@ -1,6 +1,6 @@
 @import 'tailwindcss';
-@import './theme.css';
 @import './reset.css';
+@import './theme.css';
 
 @layer base {
   :root {
@@ -35,6 +35,7 @@
   body {
     font-size: 62.5%;
     font-family:
+      'Pretendard Variable',
       'Pretendard',
       -apple-system,
       BlinkMacSystemFont,

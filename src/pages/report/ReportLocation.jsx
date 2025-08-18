@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { loadKakaoMaps, createMap, makeMarkerImage } from '../../utils/kakaoMap';
 import pinUrl from '../../assets/pin.svg';
 import closeIcon from '../../assets/close_icon.svg';
 
 const ReportLocation = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { initialLocation, initialAddress } = location.state || {};
+
   const [selectedLocation, setSelectedLocation] = useState(null);
-  const [address, setAddress] = useState('');
+  const [address, setAddress] = useState(initialAddress || '');
   const KAKAO_KEY = import.meta.env.VITE_KAKAO_MAP_API_KEY;
 
   useEffect(() => {
@@ -28,11 +31,46 @@ const ReportLocation = () => {
         }
 
         await loadKakaoMaps(KAKAO_KEY);
+
+        // 초기 위치 설정 (전달받은 위치 또는 기본 위치)
+        const initialLat = initialLocation?.lat || 37.49612;
+        const initialLng = initialLocation?.lng || 126.98231;
+
         const { map } = createMap(mapContainer, {
-          lat: 37.49612,
-          lng: 126.98231,
+          lat: initialLat,
+          lng: initialLng,
           level: 3,
         });
+
+        // 초기 위치에 마커 표시 (전달받은 위치가 있는 경우)
+        if (initialLocation) {
+          const markerImage = makeMarkerImage(pinUrl, { width: 40, height: 40 });
+          const marker = new window.kakao.maps.Marker({
+            position: new window.kakao.maps.LatLng(initialLat, initialLng),
+            image: markerImage,
+            map: map,
+          });
+          window.currentMarker = marker;
+
+          // 초기 위치 정보 설정
+          setSelectedLocation({
+            lat: initialLat,
+            lng: initialLng,
+            address: initialAddress || '주소 변환 중...',
+          });
+
+          // 주소가 없으면 변환 시도
+          if (!initialAddress) {
+            const geocoder = new window.kakao.maps.services.Geocoder();
+            geocoder.coord2Address(initialLng, initialLat, (result, status) => {
+              if (status === window.kakao.maps.services.Status.OK) {
+                const addr = result[0].address.address_name;
+                setAddress(addr);
+                setSelectedLocation((prev) => ({ ...prev, address: addr }));
+              }
+            });
+          }
+        }
 
         // 마커 이미지 생성
         const markerImage = makeMarkerImage(pinUrl, { width: 40, height: 40 });
@@ -90,7 +128,7 @@ const ReportLocation = () => {
         window.currentMarker.setMap(null);
       }
     };
-  }, [KAKAO_KEY]);
+  }, [KAKAO_KEY, initialLocation, initialAddress]);
 
   const moveToCurrentLocation = () => {
     if (!navigator.geolocation) {

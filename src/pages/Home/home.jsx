@@ -1,19 +1,21 @@
 // /src/pages/Home.jsx
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import pinUrl from '../../assets/pin.svg';
 import marketIconUrl from '../../assets/market_icon.svg';
 import { loadKakaoMaps, createMap, makeMarkerImage } from '../../utils/kakaoMap';
 import CategoryChips from '../../components/CategoryChips';
-import resetIcon from '../../assets/resetIcon.svg';
 import DetailSheet from '../../components/DetailSheet';
 import mapData from '../../mocks/map_mocks.json';
 
 export const Home = () => {
+  const navigate = useNavigate();
   const mapRef = useRef(null);
   const [category, setCategory] = useState(null);
   const [selected, setSelected] = useState(null); // { type:'store'|'market', id, data? }
   const [markers, setMarkers] = useState([]); // [{ marker, type, id, data }]
   const [currentAddress, setCurrentAddress] = useState(''); // 현재 주소 상태
+  const [currentLocation, setCurrentLocation] = useState(null); // 현재 위치 좌표 상태
   const KAKAO_KEY = import.meta.env.VITE_KAKAO_MAP_API_KEY;
 
   // 선택 상태에 따라 마커 스타일(투명도/이미지/zIndex) 갱신
@@ -59,8 +61,11 @@ export const Home = () => {
   const updateCenterAddress = async (map) => {
     try {
       const center = map.getCenter();
-      const address = await getAddressFromCoords(center.getLat(), center.getLng());
+      const lat = center.getLat();
+      const lng = center.getLng();
+      const address = await getAddressFromCoords(lat, lng);
       setCurrentAddress(address);
+      setCurrentLocation({ lat, lng });
     } catch (error) {
       console.error('중앙 주소 업데이트 실패:', error);
     }
@@ -70,6 +75,19 @@ export const Home = () => {
   useEffect(() => {
     applyMarkerStyles(selected);
   }, [selected, markers]);
+
+  // 현재 위치 요청 이벤트 리스너
+  useEffect(() => {
+    const handleGetCurrentLocation = (event) => {
+      const { callback } = event.detail;
+      callback(currentLocation);
+    };
+
+    window.addEventListener('getCurrentLocation', handleGetCurrentLocation);
+    return () => {
+      window.removeEventListener('getCurrentLocation', handleGetCurrentLocation);
+    };
+  }, [currentLocation]);
 
   useEffect(() => {
     if (!mapRef.current || !KAKAO_KEY) return;
@@ -111,10 +129,12 @@ export const Home = () => {
       try {
         initialAddress = await getAddressFromCoords(initialLat, initialLng);
         setCurrentAddress(initialAddress);
+        setCurrentLocation({ lat: initialLat, lng: initialLng });
         console.log('초기 주소 설정 완료:', initialAddress);
       } catch (error) {
         console.log('초기 주소 변환 실패, 기본 주소 사용:', error);
         setCurrentAddress(mapData.data.road_address); // 기본값으로 fallback
+        setCurrentLocation({ lat: initialLat, lng: initialLng });
       }
 
       // 지도 이동 이벤트 리스너 추가
@@ -226,22 +246,13 @@ export const Home = () => {
     <div className="relative w-full h-full overflow-hidden flex flex-col items-center">
       {/* 주소 박스 */}
       <div className="absolute top-[4.9rem] left-1/2 -translate-x-1/2 z-10 bg-white w-[80%] h-[4.8rem] pl-[1.5rem] leading-[4.8rem] rounded-xl shadow">
-        {currentAddress || mapData.data.road_address}
+        <span data-address>{currentAddress || mapData.data.road_address}</span>
       </div>
 
       {/* 카테고리 칩 */}
       <div className="absolute top-[11.1rem] z-10 w-full px-4 py-2">
         <CategoryChips value={category} onChange={setCategory} />
       </div>
-
-      <button
-        type="button"
-        onClick={handleResetFromHere}
-        className="absolute top-[16.1rem] z-10 flex items-center gap-2 px-4 py-2 text-white rounded-[3rem] bg-[#FA0] active:scale-[0.98]"
-      >
-        <img src={resetIcon} alt="resetIcon" />
-        <span>현 위치에서 검색</span>
-      </button>
 
       {/* 지도 */}
       <div ref={mapRef} className="absolute inset-0 w-full" />

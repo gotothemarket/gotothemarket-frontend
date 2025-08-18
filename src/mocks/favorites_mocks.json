@@ -1,0 +1,41 @@
+{
+  "success": true,
+  "status": 200,
+  "data": {
+    "favorites": [
+      {
+        "store_name": "쌍방울트라이",
+        "market_name": "남성사계시장",
+        "store_icon": "/src/assets/의류.svg",
+        "category": "의류"
+      },
+      {
+        "store_name": "대성축산",
+        "market_name": "남성역골목시장",
+        "store_icon": "/src/assets/축산.svg",
+        "category": "축산"
+      },
+      {
+        "store_name": "종로곱창",
+        "market_name": "남성사계시장",
+        "store_icon": "/src/assets/요리.svg",
+        "category": "식당"
+      },
+      {
+        "store_name": "홍두깨손칼국수",
+        "market_name": "상도전통시장",
+        "store_icon": "/src/assets/요리.svg",
+        "category": "식당"
+      },
+      {
+        "store_name": "콩낙촌",
+        "market_name": "남성사계시장",
+        "store_icon": "/src/assets/요리.svg",
+        "category": "식당"
+      }
+    ],
+    "page": 1,
+    "size": 10,
+    "total": 5
+  }
+}

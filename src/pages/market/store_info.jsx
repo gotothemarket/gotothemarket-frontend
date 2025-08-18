@@ -81,7 +81,7 @@ export default function StoreInfo() {
       >
         <button
           onClick={handleReview}
-          className="w-full bg-main-1000 text-white py-4 px-6 rounded-[1rem] font-semibold text-lg h-[4.8rem]"
+          className="w-full bg-primary-1000 text-white py-4 px-6 rounded-[1rem] font-semibold text-body9 h-[4.8rem]"
         >
           리뷰 남기기
         </button>

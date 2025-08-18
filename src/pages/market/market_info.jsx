@@ -59,6 +59,7 @@ export default function MarketInfo() {
           photos={photoList}
           ctaLabel="사진 제보하기"
           onCta={handlePhotoReport}
+          isMarket={true}
         />
 
         <MapBox title="시장 위치" lat={market.market_coord?.lat} lng={market.market_coord?.lng} />

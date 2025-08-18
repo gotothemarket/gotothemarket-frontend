@@ -170,7 +170,7 @@ function MarketDetail({ payload }) {
         <InfoRows title="시장 정보" rows={rows} />
       </section>
 
-      <PhotoStrip title="시장 대표 사진" photos={normalizePhotos(photos)} />
+      <PhotoStrip title="시장 대표 사진" isMarket={true} photos={normalizePhotos(photos)} />
 
       {/* 주요 상점 미리보기 */}
       {market.featured_stores && market.featured_stores.length > 0 && (

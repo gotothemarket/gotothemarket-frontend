@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import homeIcon from '../assets/home_active.svg';
 import homeInactiveIcon from '../assets/home_default.svg';
 import writeIcon from '../assets/write_active.svg';
@@ -8,32 +8,66 @@ import profileInactiveIcon from '../assets/profile_default.svg';
 
 export default function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
 
-  // 홈 페이지('/')에서만 Navbar 표시
-  if (location.pathname !== '/') {
+  // Navbar 표시 경로: 홈, 마이페이지
+  const visiblePaths = ['/', '/mypage'];
+  if (!visiblePaths.includes(location.pathname)) {
     return null;
   }
 
+  const isMypage = location.pathname === '/mypage';
+
+  const handleReportClick = () => {
+    // 홈 컴포넌트에서 현재 위치 정보를 가져와서 전달 (리스너 없을 경우 안전하게 이동)
+    let responded = false;
+    const event = new CustomEvent('getCurrentLocation', {
+      detail: {
+        callback: (location) => {
+          responded = true;
+          if (location) {
+            navigate('/report/location', {
+              state: {
+                initialLocation: location,
+                initialAddress: document.querySelector('[data-address]')?.textContent || '',
+              },
+            });
+          } else {
+            navigate('/report/location');
+          }
+        },
+      },
+    });
+    window.dispatchEvent(event);
+    setTimeout(() => {
+      if (!responded) navigate('/report/location');
+    }, 100);
+  };
+
   return (
-    <header className="relative z-50 bg-white border-t border-gray-200 w-full pb-[4rem] pt-[1rem]">
+    <header
+      className={`relative z-50 w-full pb-[4rem] pt-[1rem] ${isMypage ? 'bg-black border-t border-[#1a1a1a]' : 'bg-white border-t border-gray-200'}`}
+    >
       <div className="mx-auto max-w-screen-xl h-full px-[5.3rem] flex items-center justify-between">
         {/* 내비게이션 */}
         <nav className="flex w-full items-center justify-between">
-          <NavLink
-            to="/report/location"
-            className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors"
+          <button
+            onClick={handleReportClick}
+            className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
           >
-            {({ isActive }) => (
-              <>
-                <img
-                  src={isActive ? writeIcon : writeInactiveIcon}
-                  alt="가게"
-                  className="w-[2rem] h-[2rem]"
-                />
-                <span className={`text-xs ${isActive ? 'text-blue-600' : 'text-gray-600'}`}></span>
-              </>
-            )}
-          </NavLink>
+            <img
+              src={
+                location.pathname === '/report/location' || location.pathname === '/report/form'
+                  ? writeIcon
+                  : writeInactiveIcon
+              }
+              alt="가게"
+              className="w-[2rem] h-[2rem]"
+            />
+            <span
+              className={`text-xs ${location.pathname === '/report/location' || location.pathname === '/report/form' ? 'text-blue-600' : 'text-gray-600'}`}
+            ></span>
+          </button>
           <NavLink
             to="/"
             end

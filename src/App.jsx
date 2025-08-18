@@ -9,6 +9,10 @@ import MapDebugTest from './pages/market/components/MapDebugTest';
 import ReportForm from './pages/report/ReportForm';
 import Onboarding from './pages/onboarding/Onboarding';
 import Introduce from './pages/onboarding/Introduce';
+import Mypage from './pages/mypage/Mypage';
+import MyBadge from './pages/mypage/MyBadge';
+import MyFavorite from './pages/mypage/MyFavorite';
+import MyReview from './pages/mypage/MyReview';
 
 export default function App() {
   return (
@@ -28,6 +32,10 @@ export default function App() {
           <Route path="/report/location" element={<ReportLocation />} />
           <Route path="/report/form" element={<ReportForm />} />
           <Route path="/debug" element={<MapDebugTest />} />
+          <Route path="/mypage" element={<Mypage />} />
+          <Route path="/mypage/badge" element={<MyBadge />} />
+          <Route path="/mypage/favorite" element={<MyFavorite />} />
+          <Route path="/mypage/review" element={<MyReview />} />
         </Route>
       </Routes>
     </div>
