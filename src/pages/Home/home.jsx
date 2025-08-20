@@ -1,11 +1,14 @@
 // /src/pages/Home.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
 import pinUrl from '../../assets/pin.svg';
 import marketIconUrl from '../../assets/market_icon.svg';
 import { loadKakaoMaps, createMap, makeMarkerImage } from '../../utils/kakaoMap';
 import CategoryChips from '../../components/CategoryChips';
 import DetailSheet from '../../components/DetailSheet';
+import BadgeModal from '../../components/BadgeModal';
+import { firstLaunchOptions } from '../../apis/apis';
 import mapData from '../../mocks/map_mocks.json';
 
 export const Home = () => {
@@ -16,7 +19,61 @@ export const Home = () => {
   const [markers, setMarkers] = useState([]); // [{ marker, type, id, data }]
   const [currentAddress, setCurrentAddress] = useState(''); // 현재 주소 상태
   const [currentLocation, setCurrentLocation] = useState(null); // 현재 위치 좌표 상태
+  const [showBadgeModal, setShowBadgeModal] = useState(false); // 뱃지 모달 상태
+  const [badgeInfo, setBadgeInfo] = useState(null); // 뱃지 정보 상태
   const KAKAO_KEY = import.meta.env.VITE_KAKAO_MAP_API_KEY;
+
+  // first-launch API 호출
+  const firstLaunchMutation = useMutation(firstLaunchOptions());
+
+  // 사용자가 처음 접속했는지 확인하는 함수
+  const checkFirstVisit = async () => {
+    const hasVisited = localStorage.getItem('hasVisitedBefore');
+    if (!hasVisited) {
+      try {
+        // API 호출하여 뱃지 정보 가져오기
+        const response = await firstLaunchMutation.mutateAsync();
+
+        if (response.success && response.data.awarded) {
+          // 뱃지 지급 성공 시
+          setBadgeInfo(response.data);
+          setShowBadgeModal(true);
+          localStorage.setItem('hasVisitedBefore', 'true');
+        }
+      } catch (error) {
+        console.error('First launch API 호출 실패:', error);
+        // API 실패 시에도 기본 모달 표시
+        setShowBadgeModal(true);
+        localStorage.setItem('hasVisitedBefore', 'true');
+      }
+    }
+  };
+
+  // 개발용: 모달 테스트 함수 (나중에 제거 가능)
+  const resetFirstVisit = async () => {
+    localStorage.removeItem('hasVisitedBefore');
+    setBadgeInfo(null);
+
+    try {
+      // API 다시 호출
+      const response = await firstLaunchMutation.mutateAsync();
+      if (response.success && response.data.awarded) {
+        setBadgeInfo(response.data);
+        setShowBadgeModal(true);
+        localStorage.setItem('hasVisitedBefore', 'true');
+      }
+    } catch (error) {
+      console.error('First launch API 재호출 실패:', error);
+      // API 실패 시 기본 모달 표시
+      setShowBadgeModal(true);
+      localStorage.setItem('hasVisitedBefore', 'true');
+    }
+  };
+
+  // 컴포넌트 마운트 시 첫 방문 확인
+  useEffect(() => {
+    checkFirstVisit();
+  }, []);
 
   // 선택 상태에 따라 마커 스타일(투명도/이미지/zIndex) 갱신
   const applyMarkerStyles = (selectedItem) => {
@@ -112,11 +169,8 @@ export const Home = () => {
 
           initialLat = position.coords.latitude;
           initialLng = position.coords.longitude;
-          console.log('현재 위치 가져오기 성공:', initialLat, initialLng);
         }
-      } catch (error) {
-        console.log('현재 위치 가져오기 실패, 기본 위치 사용:', error);
-      }
+      } catch (error) {}
 
       // 지도 생성 (현재 위치 또는 기본 위치)
       const { map } = createMap(mapRef.current, {
@@ -130,9 +184,7 @@ export const Home = () => {
         initialAddress = await getAddressFromCoords(initialLat, initialLng);
         setCurrentAddress(initialAddress);
         setCurrentLocation({ lat: initialLat, lng: initialLng });
-        console.log('초기 주소 설정 완료:', initialAddress);
       } catch (error) {
-        console.log('초기 주소 변환 실패, 기본 주소 사용:', error);
         setCurrentAddress(mapData.data.road_address); // 기본값으로 fallback
         setCurrentLocation({ lat: initialLat, lng: initialLng });
       }
@@ -269,6 +321,21 @@ export const Home = () => {
           ⛳ AI 코스 추천
         </span>
       </div>
+
+      {/* 개발용: 모달 테스트 버튼 (나중에 제거) */}
+      <div
+        className="absolute bottom-[4rem] left-1/2 -translate-x-1/2 z-10 flex py-[1rem] px-[2rem] justify-center items-center gap-2 rounded-2xl border border-gray-400 bg-gray-200 cursor-pointer hover:bg-gray-300 transition-colors"
+        onClick={resetFirstVisit}
+      >
+        <span className="text-center text-gray-700 text-sm">🧪 모달 테스트 (개발용)</span>
+      </div>
+
+      {/* 뱃지 모달 */}
+      <BadgeModal
+        isOpen={showBadgeModal}
+        onClose={() => setShowBadgeModal(false)}
+        badgeInfo={badgeInfo}
+      />
     </div>
   );
 };

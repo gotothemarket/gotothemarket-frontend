@@ -62,3 +62,9 @@ export const toggleFavoriteOptions = (storeId) =>
       apiPost(`/api/store/${storeId}/favorite`, payload),
     invalidateKeys: [k.store.favorite(storeId), k.mypage.favorites(), k.store.detail(storeId)],
   });
+
+// 첫 실행 체크 및 뱃지 지급
+export const firstLaunchOptions = () =>
+  createMutationOptions({
+    mutationFn: () => apiPost('/api/session/first-launch?memberId=1'),
+  });
