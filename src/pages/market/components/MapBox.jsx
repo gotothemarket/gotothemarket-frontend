@@ -3,7 +3,7 @@ import { loadKakaoMaps, createMap, makeMarkerImage, addMarker } from '../../../u
 import pinIcon from '../../../assets/pin.svg';
 import { useEffect, useRef } from 'react';
 
-export default function MapBox({ title, lat, lng }) {
+export default function MapBox({ title, lat, lng, className = '', sectionClassName = '' }) {
   const ref = useRef(null);
   const KAKAO_KEY = import.meta.env.VITE_KAKAO_MAP_API_KEY;
 
@@ -22,9 +22,9 @@ export default function MapBox({ title, lat, lng }) {
   }, [KAKAO_KEY, lat, lng]);
 
   return (
-    <section className="pt-[3rem] pb-[10rem] px-[1.5rem]">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
-      <div ref={ref} className="w-full h-[14.6rem] rounded-[2rem] overflow-hidden" />
+    <section className={`pt-[3rem] px-[1.5rem] ${sectionClassName}`}>
+      {title && <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>}
+      <div ref={ref} className={`w-full rounded-[2rem] overflow-hidden ${className}`} />
     </section>
   );
 }

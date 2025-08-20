@@ -261,7 +261,10 @@ export const Home = () => {
       <DetailSheet selected={selected} onClose={handleCloseDetailSheet} />
 
       {/* 하단 박스 */}
-      <div className="absolute bottom-[8.3rem] left-1/2 -translate-x-1/2 z-10 flex py-[1.4rem] px-[2rem] justify-center items-center gap-2 rounded-3xl border border-[#FF661F] bg-[#FEFEFE] shadow-[0.5px_4px_7px_0_rgba(255,102,31,0.80)]">
+      <div
+        className="absolute bottom-[8.3rem] left-1/2 -translate-x-1/2 z-10 flex py-[1.4rem] px-[2rem] justify-center items-center gap-2 rounded-3xl border border-[#FF661F] bg-[#FEFEFE] shadow-[0.5px_4px_7px_0_rgba(255,102,31,0.80)] cursor-pointer hover:bg-orange-50 transition-colors"
+        onClick={() => navigate('/ai')}
+      >
         <span className="text-center text-[#FF661F] font-['Pretendard_Variable'] text-[1.4rem] font-semibold leading-none">
           ⛳ AI 코스 추천
         </span>

@@ -13,6 +13,8 @@ import Mypage from './pages/mypage/Mypage';
 import MyBadge from './pages/mypage/MyBadge';
 import MyFavorite from './pages/mypage/MyFavorite';
 import MyReview from './pages/mypage/MyReview';
+import Ai from './pages/ai/Ai';
+import AiResult from './pages/ai/AiResult';
 
 export default function App() {
   return (
@@ -36,6 +38,8 @@ export default function App() {
           <Route path="/mypage/badge" element={<MyBadge />} />
           <Route path="/mypage/favorite" element={<MyFavorite />} />
           <Route path="/mypage/review" element={<MyReview />} />
+          <Route path="/ai" element={<Ai />} />
+          <Route path="/ai/result" element={<AiResult />} />
         </Route>
       </Routes>
     </div>

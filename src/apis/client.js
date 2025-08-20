@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const BASE_URL = `https://${import.meta.env.VITE_API_BASE_URL}`;
 
 async function handle(res, path) {
   if (!res.ok) throw new Error(`${res.status} ${res.statusText} for ${path}`);
