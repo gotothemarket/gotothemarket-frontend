@@ -1,11 +1,11 @@
 import Header from '../../components/Header';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { favoritesOptions } from '../../apis/mypage/api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { favoritesOptions, deleteFavoriteOptions } from '../../apis/mypage/api';
 import closeIcon from '../../assets/close_icon_white.svg';
 
-const FavoriteCard = ({ favorite, showDelete, onDelete, onClick }) => (
+const FavoriteCard = ({ favorite, showDelete, onDelete, onClick, isDeleting }) => (
   <div
     className="flex items-center gap-[1.2rem] p-[0.8rem] bg-[#181818] rounded-[2rem] cursor-pointer hover:bg-[#2A2A2A] transition-colors"
     onClick={onClick}
@@ -29,9 +29,18 @@ const FavoriteCard = ({ favorite, showDelete, onDelete, onClick }) => (
           e.stopPropagation(); // 부모 클릭 이벤트 방지
           onDelete(favorite);
         }}
-        className="w-[2rem] h-[2rem] rounded-full cursor-pointer bg-[#FF4444] flex items-center justify-center flex-shrink-0 mr-[2rem]"
+        disabled={isDeleting}
+        className={`w-[2rem] h-[2rem] rounded-full cursor-pointer flex items-center justify-center flex-shrink-0 mr-[2rem] transition-colors ${
+          isDeleting 
+            ? 'bg-[#666666] cursor-not-allowed' 
+            : 'bg-[#FF4444] hover:bg-[#FF6666]'
+        }`}
       >
-        <img src={closeIcon} alt="삭제" className="w-[0.86rem] h-[0.86rem]" />
+        {isDeleting ? (
+          <div className="w-[0.86rem] h-[0.86rem] border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+        ) : (
+          <img src={closeIcon} alt="삭제" className="w-[0.86rem] h-[0.86rem]" />
+        )}
       </button>
     )}
   </div>
@@ -40,16 +49,36 @@ const FavoriteCard = ({ favorite, showDelete, onDelete, onClick }) => (
 const MyFavorite = () => {
   const navigate = useNavigate();
   const [isDeleteMode, setIsDeleteMode] = useState(false);
+  const queryClient = useQueryClient();
 
   // 즐겨찾기 데이터 가져오기
   const { data: favoritesData, isLoading, error } = useQuery(favoritesOptions());
 
+  // 즐겨찾기 삭제 mutation
+  const deleteFavoriteMutation = useMutation({
+    ...deleteFavoriteOptions(),
+    onSuccess: () => {
+      // 삭제 성공 시 즐겨찾기 목록을 다시 가져오기
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+      console.log('즐겨찾기 삭제 성공');
+      // 삭제 모드 자동 종료
+      setIsDeleteMode(false);
+    },
+    onError: (error) => {
+      console.error('즐겨찾기 삭제 실패:', error);
+      alert('즐겨찾기 삭제에 실패했습니다.');
+    },
+  });
+
   const favorites = favoritesData?.data?.favorites || [];
   const total = favoritesData?.data?.total || 0;
 
-  const handleDelete = (favoriteToDelete) => {
-    // TODO: 실제 삭제 API 호출
-    console.log('즐겨찾기 삭제:', favoriteToDelete);
+  const handleDelete = async (favoriteToDelete) => {
+    try {
+      await deleteFavoriteMutation.mutateAsync(favoriteToDelete.storeId);
+    } catch (error) {
+      console.error('즐겨찾기 삭제 중 오류 발생:', error);
+    }
   };
 
   const toggleDeleteMode = () => {
@@ -108,6 +137,7 @@ const MyFavorite = () => {
               showDelete={isDeleteMode}
               onDelete={handleDelete}
               onClick={() => navigate(`/store/${favorite.storeId}`)}
+              isDeleting={deleteFavoriteMutation.isLoading}
             />
           ))
         ) : (

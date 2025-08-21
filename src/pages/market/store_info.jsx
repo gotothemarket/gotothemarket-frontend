@@ -86,7 +86,12 @@ export default function StoreInfo() {
         }))
       : [];
 
-    const photos = Array.isArray(s.photos) ? s.photos : [];
+    const photos = Array.isArray(s.photos) 
+      ? s.photos.map((p, i) => ({
+          photo_id: p.photo_id ?? p.photoId ?? p.id ?? i,
+          photo_url: p.photo_url ?? p.photoUrl ?? p.url,
+        }))
+      : [];
 
     return { store, photos, review_summary, reviews };
   }, [data]);

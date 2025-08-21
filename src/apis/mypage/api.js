@@ -18,11 +18,27 @@ export const favoritesOptions = (filters = {}) =>
   });
 
 // 즐겨찾기 삭제
-export const deleteFavoriteOptions = (favoriteId) =>
-  createMutationOptions({
-    mutationFn: () => apiDelete(`/api/mypage/favorite/${favoriteId}`),
-    invalidateKeys: [k.mypage.favorites(), k.store.all()],
-  });
+export const deleteFavoriteOptions = (storeId) => ({
+  mutationKey: ['deleteFavorite', storeId],
+  mutationFn: async () => {
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+    const response = await fetch(`${baseUrl}/api/stores/${storeId}/toggle-favorite`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'remove',
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('즐겨찾기 삭제에 실패했습니다.');
+    }
+
+    return response.json();
+  },
+});
 
 // 내 리뷰/배지
 export const myReviewsOptions = (filters = {}) =>
