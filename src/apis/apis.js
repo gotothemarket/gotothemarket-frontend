@@ -1,4 +1,5 @@
 import { apiGet, apiPost, apiPatch, apiDelete } from './client';
+import { apiPostForm } from './client';
 import { k } from './queryKeys';
 import { createQueryOptions, createMutationOptions } from './queryOptions';
 
@@ -44,8 +45,11 @@ export const createReviewOptions = (storeId) =>
 
 export const uploadPhotoOptions = (storeId) =>
   createMutationOptions({
-    mutationFn: (payload /* { url or file meta } */) =>
-      apiPost(`/api/store/${storeId}/photo`, payload),
+    mutationFn: (file /* File */) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      return apiPostForm(`/api/stores/${storeId}/photo`, fd);
+    },
     invalidateKeys: [k.store.photos(storeId), k.store.detail(storeId)],
   });
 

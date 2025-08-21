@@ -1,5 +1,10 @@
 // components/PhotoStrip.jsx
 import { useNavigate } from 'react-router-dom';
+import { useRef } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { queryClient } from '../../../apis/queryClient';
+import { k } from '../../../apis/queryKeys';
+import { uploadPhotoOptions } from '../../../apis/apis';
 
 export default function PhotoStrip({
   title,
@@ -10,6 +15,7 @@ export default function PhotoStrip({
   isMarket = false,
 }) {
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
 
   const handleViewMore = () => {
     if (storeId) {
@@ -17,15 +23,13 @@ export default function PhotoStrip({
     }
   };
 
+  // 업로드 UI는 storeId가 준비된 뒤에만 렌더링되도록 별도 컴포넌트 사용
+
   return (
     <section className="pt-[3rem] px-[1.5rem]">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-        {!isMarket && onCta && (
-          <button onClick={onCta} className="text-sm text-primary-1000">
-            {ctaLabel}
-          </button>
-        )}
+        {!isMarket && storeId && <PhotoUploader storeId={storeId} ctaLabel={ctaLabel} />}
       </div>
 
       {photos.length === 0 ? (
@@ -67,5 +71,65 @@ export default function PhotoStrip({
         </div>
       )}
     </section>
+  );
+}
+
+function PhotoUploader({ storeId, ctaLabel }) {
+  const fileInputRef = useRef(null);
+  const uploadMutation = useMutation(uploadPhotoOptions(storeId));
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const res = await uploadMutation.mutateAsync(file);
+      const newPhoto = {
+        photo_id: res?.photoId ?? res?.data?.photoId ?? Date.now(),
+        photo_url: res?.photoUrl ?? res?.data?.photoUrl ?? '',
+      };
+      const keyId = String(storeId);
+      // 즉시 캐시 반영
+      queryClient.setQueryData(k.store.detail(keyId), (prev) => {
+        if (!prev) return prev;
+        if (prev.data) {
+          const photos = Array.isArray(prev.data.photos) ? prev.data.photos : [];
+          return { ...prev, data: { ...prev.data, photos: [...photos, newPhoto] } };
+        }
+        const photos = Array.isArray(prev.photos) ? prev.photos : [];
+        return { ...prev, photos: [...photos, newPhoto] };
+      });
+      // 동기화 위해 무효화도 수행
+      queryClient.invalidateQueries({ queryKey: k.store.detail(keyId) });
+      queryClient.invalidateQueries({ queryKey: k.store.photos(keyId) });
+      alert('사진이 업로드되었습니다.');
+    } catch (err) {
+      console.error('사진 업로드 실패:', err);
+      alert('사진 업로드에 실패했습니다.');
+    } finally {
+      e.target.value = '';
+    }
+  };
+
+  return (
+    <>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+      <button
+        onClick={handleUploadClick}
+        className="text-sm text-primary-1000 disabled:opacity-50"
+        disabled={uploadMutation.isPending}
+      >
+        {uploadMutation.isPending ? '업로드 중...' : ctaLabel}
+      </button>
+    </>
   );
 }

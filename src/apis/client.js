@@ -35,3 +35,12 @@ export function apiPatch(path, body) {
 export function apiDelete(path) {
   return fetch(`${BASE_URL}${path}`, { method: 'DELETE' }).then((r) => handle(r, path));
 }
+
+// Multipart/form-data POST (for file uploads)
+export function apiPostForm(path, formData, { signal } = {}) {
+  return fetch(`${BASE_URL}${path}`, {
+    method: 'POST',
+    body: formData,
+    signal,
+  }).then((r) => handle(r, path));
+}

@@ -209,7 +209,6 @@ export default function StoreInfo() {
           title="가게 사진"
           photos={photos}
           ctaLabel="사진 제보하기"
-          onCta={handlePhotoReport}
           storeId={store.store_id}
         />
 
