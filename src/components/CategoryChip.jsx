@@ -27,6 +27,7 @@ const CategoryChip = ({ id, label, icon, emoji, isSelected = false, onClick, cla
       style={{ fontFamily: 'Pretendard Variable' }}
     >
       {icon && <img src={icon} alt={label} className="w-5 h-5" />}
+      {!icon && <span className="text-lg">🏪</span>}
       {emoji && <span className="text-lg">{emoji}</span>}
       <span>{label}</span>
     </button>

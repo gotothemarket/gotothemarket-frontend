@@ -10,14 +10,14 @@ import streetIcon from '../assets/길거리.svg';
 import bakeryIcon from '../assets/빵떡.svg';
 
 const CATEGORIES = [
-  { id: 'produce', label: '과일·야채', icon: produceIcon },
-  { id: 'seafood', label: '수산', icon: seafoodIcon },
-  { id: 'restaurant', label: '식당', icon: restaurantIcon },
-  { id: 'clothing', label: '의류', icon: clothingIcon },
-  { id: 'misc', label: '잡화', icon: miscIcon },
-  { id: 'meat', label: '축산', icon: meatIcon },
-  { id: 'street', label: '길거리음식', icon: streetIcon },
-  { id: 'bakery', label: '빵/떡', icon: bakeryIcon },
+  { id: 'produce', label: '과일·야채', icon: produceIcon, storeTypeId: 1 },
+  { id: 'seafood', label: '수산', icon: seafoodIcon, storeTypeId: 2 },
+  { id: 'restaurant', label: '식당', icon: restaurantIcon, storeTypeId: 3 },
+  { id: 'bakery', label: '빵/떡', icon: bakeryIcon, storeTypeId: 4 },
+  { id: 'misc', label: '잡화', icon: miscIcon, storeTypeId: 5 },
+  { id: 'street', label: '길거리음식', icon: streetIcon, storeTypeId: 6 },
+  { id: 'meat', label: '축산', icon: meatIcon, storeTypeId: 7 },
+  { id: 'clothing', label: '의류', icon: clothingIcon, storeTypeId: 8 },
 ];
 
 const CategoryChips = ({ value, onChange }) => {
@@ -29,6 +29,7 @@ const CategoryChips = ({ value, onChange }) => {
           id={category.id}
           label={category.label}
           icon={category.icon}
+          storeType={category.storeTypeId}
           isSelected={value === category.id}
           onClick={onChange}
           className="flex-shrink-0"

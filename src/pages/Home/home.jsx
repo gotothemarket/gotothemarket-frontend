@@ -15,6 +15,7 @@ import mapData from '../../mocks/map_mocks.json';
 export const Home = () => {
   const navigate = useNavigate();
   const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null); // 지도 객체 저장용 ref 추가
   const [category, setCategory] = useState(null);
   const [selected, setSelected] = useState(null); // { type:'store'|'market', id, data? }
   const [markers, setMarkers] = useState([]); // [{ marker, type, id, data }]
@@ -180,6 +181,12 @@ export const Home = () => {
         lng: initialLng,
         level: 3,
       });
+      mapInstanceRef.current = map; // 지도 객체를 ref에 저장
+
+      console.log('🗺️ 지도 생성 완료!');
+      console.log('📍 초기 좌표:', { lat: initialLat, lng: initialLng });
+      console.log('🗺️ 지도 객체:', map);
+      console.log('🔗 mapInstanceRef.current:', mapInstanceRef.current);
 
       // 초기 주소 설정
       try {
@@ -271,7 +278,8 @@ export const Home = () => {
     applyMarkerStyles(null);
 
     // 현재 위치로 지도 이동 및 주소 업데이트
-    if (navigator.geolocation && mapRef.current) {
+    if (navigator.geolocation && mapInstanceRef.current) {
+      // mapInstanceRef.current 사용
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const lat = position.coords.latitude;
@@ -279,7 +287,7 @@ export const Home = () => {
           const latlng = new window.kakao.maps.LatLng(lat, lng);
 
           // 지도 중앙 이동
-          window.kakao.maps.event.trigger(mapRef.current, 'dragend');
+          window.kakao.maps.event.trigger(mapInstanceRef.current, 'dragend'); // mapInstanceRef.current 사용
 
           try {
             const address = await getAddressFromCoords(lat, lng);
@@ -317,9 +325,39 @@ export const Home = () => {
       {/* 하단 박스 */}
       <div
         className="absolute bottom-[8.3rem] left-1/2 -translate-x-1/2 z-10 flex py-[1.4rem] px-[2rem] justify-center items-center gap-2 rounded-3xl border border-[#FF661F] bg-[#FEFEFE] shadow-[0.5px_4px_7px_0_rgba(255,102,31,0.80)] cursor-pointer hover:bg-orange-50 transition-colors"
-        onClick={() => navigate('/ai')}
+        onClick={() => {
+          // 현재 지도 중심 좌표 가져오기
+          if (mapInstanceRef.current) {
+            // mapInstanceRef.current 사용
+            const center = mapInstanceRef.current.getCenter();
+            const lat = center.getLat();
+            const lng = center.getLng();
+
+            console.log('🚀 AI 코스 추천 버튼 클릭!');
+            console.log('📍 현재 지도 중심 좌표:', { lat, lng });
+            console.log('🗺️ 지도 객체:', mapInstanceRef.current);
+
+            navigate('/ai', {
+              state: {
+                centerLat: lat,
+                centerLng: lng,
+              },
+            });
+          } else {
+            // 지도가 아직 로드되지 않은 경우 기본값 사용
+            console.log('⚠️ 지도가 아직 로드되지 않음, 기본 좌표 사용');
+            console.log('📍 기본 좌표:', { lat: 37.4961, lng: 126.98231 });
+
+            navigate('/ai', {
+              state: {
+                centerLat: 37.4961,
+                centerLng: 126.98231,
+              },
+            });
+          }
+        }}
       >
-        <span className="text-center text-[#FF661F] font-['Pretendard_Variable'] text-[1.4rem] font-semibold leading-none">
+        <span className="text-center text-[#FF661F] text-[1.4rem] font-semibold leading-none">
           ⛳ AI 코스 추천
         </span>
       </div>
