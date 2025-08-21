@@ -64,12 +64,36 @@ const ReportForm = () => {
       storeIcon: getStoreIcon(storeType), // 가게 종류에 따른 아이콘
     };
 
+    console.log('🚀 가게 제보 요청 데이터:', storeData);
+
     try {
-      await reportStoreMutation.mutateAsync(storeData);
-      alert('가게가 성공적으로 제보되었습니다!');
-      navigate('/');
+      const response = await reportStoreMutation.mutateAsync(storeData);
+
+      console.log('✅ 가게 제보 성공 응답:', response);
+
+      // 응답에서 가게 ID 추출 (응답 구조에 따라 조정 필요)
+      const storeId =
+        response?.storeId || response?.id || response?.data?.storeId || response?.data?.id;
+
+      console.log('🔍 추출된 가게 ID:', storeId);
+
+      if (storeId) {
+        // 등록된 가게 정보 페이지로 이동
+        console.log('📍 가게 정보 페이지로 이동:', `/stores/${storeId}`);
+        navigate(`/stores/${storeId}`);
+      } else {
+        // 가게 ID를 찾을 수 없는 경우 홈으로 이동
+        console.log('⚠️ 가게 ID를 찾을 수 없어 홈으로 이동');
+        alert('가게가 성공적으로 제보되었습니다!');
+        navigate('/');
+      }
     } catch (error) {
-      console.error('가게 제보 에러:', error);
+      console.error('❌ 가게 제보 에러:', error);
+      console.error('❌ 에러 상세 정보:', {
+        message: error.message,
+        status: error.status,
+        response: error.response,
+      });
       alert('가게 제보에 실패했습니다. 다시 시도해주세요.');
     }
   };
@@ -80,11 +104,11 @@ const ReportForm = () => {
       produce: 1, // 과일·야채
       seafood: 2, // 수산
       restaurant: 3, // 식당
-      clothing: 4, // 의류
+      bakery: 4, // 빵·떡
       misc: 5, // 잡화
-      meat: 6, // 축산
-      street: 7, // 길거리음식
-      bakery: 8, // 빵·떡
+      street: 6, // 길거리음식
+      meat: 7, // 축산
+      clothing: 8, // 의류
     };
     return typeMap[storeType] || 0;
   };
@@ -108,11 +132,11 @@ const ReportForm = () => {
     { id: 'produce', label: '과일·야채', icon: produceIcon },
     { id: 'seafood', label: '수산', icon: seafoodIcon },
     { id: 'restaurant', label: '식당', icon: restaurantIcon },
-    { id: 'clothing', label: '의류', icon: clothingIcon },
-    { id: 'misc', label: '잡화', icon: miscIcon },
-    { id: 'meat', label: '축산', icon: meatIcon },
-    { id: 'street', label: '길거리음식', icon: streetIcon },
     { id: 'bakery', label: '빵·떡', icon: bakeryIcon },
+    { id: 'misc', label: '잡화', icon: miscIcon },
+    { id: 'street', label: '길거리음식', icon: streetIcon },
+    { id: 'meat', label: '축산', icon: meatIcon },
+    { id: 'clothing', label: '의류', icon: clothingIcon },
   ];
 
   if (!selectedLocation) {

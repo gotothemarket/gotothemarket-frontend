@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 
 import PageHeader from './components/PageHeader';
 import EntityHeader from './components/EntityHeader';
@@ -10,34 +11,156 @@ import RatingSummary from './components/RatingSummary';
 import ReviewList from './components/ReviewList';
 
 import ReviewModal from '../../components/ReviewModal';
-import storeData from '../../mocks/store_mocks.json';
 import { formatTime } from '../../utils/formatTime';
+import { storeDetailOptions } from '../../apis/apis';
+import { useMutation } from '@tanstack/react-query';
+import { createReviewOptions } from '../../apis/apis';
 
 export default function StoreInfo() {
   const navigate = useNavigate();
+  const { id } = useParams();
 
-  const [isBookmarked, setIsBookmarked] = useState(storeData.store.favorite_check);
+  const { data, isLoading, error } = useQuery(storeDetailOptions(id));
+
+  // API 응답 형태를 UI에서 쓰는 형태로 정규화
+  const normalized = useMemo(() => {
+    const s = data?.data ?? data ?? {};
+
+    const toTimeNumber = (t) => {
+      if (t == null) return undefined;
+      if (typeof t === 'number') return t;
+      const m = String(t).match(/^(\d{1,2}):(\d{2})$/);
+      if (m) return Number(m[1]) * 100 + Number(m[2]);
+      // e.g. "오전 9시" 같은 포맷은 기본값으로 둠
+      return undefined;
+    };
+
+    const typeLabelByNumber = {
+      1: '과일·야채',
+      2: '수산',
+      3: '식당',
+      4: '빵·떡',
+      5: '잡화',
+      6: '길거리음식',
+      7: '축산',
+      8: '의류',
+    };
+
+    // 원본 응답에서 store 블록 우선 사용
+    const srcStore = s.store ?? {};
+    const coord = srcStore.storeCoord ??
+      srcStore.coord ??
+      srcStore.location ?? {
+        lat: srcStore.lat,
+        lng: srcStore.lng,
+      };
+
+    const store = {
+      store_id: srcStore.storeId ?? srcStore.id,
+      store_name: srcStore.storeName ?? srcStore.name,
+      store_icon: srcStore.storeIcon ?? srcStore.icon,
+      favorite_check: Boolean(srcStore.favoriteCheck ?? srcStore.favorite_check),
+      store_coord: coord,
+      type_name:
+        srcStore.typeName ?? typeLabelByNumber?.[srcStore.storeType] ?? srcStore.type_name ?? '',
+      opening_hours: toTimeNumber(srcStore.openingHours ?? srcStore.opening_hours),
+      closing_hours: toTimeNumber(srcStore.closingHours ?? srcStore.closing_hours),
+      phone_number: srcStore.phoneNumber ?? srcStore.phone_number ?? '',
+    };
+
+    const rs = s.review_summary ?? s.reviewSummary ?? {};
+    const review_summary = {
+      average_rating: rs.average_rating ?? rs.averageRating ?? 0,
+      review_count: rs.review_count ?? rs.reviewCount ?? 0,
+    };
+
+    const reviews = Array.isArray(s.reviews)
+      ? s.reviews.map((r) => ({
+          review_id: r.review_id ?? r.reviewId ?? r.id,
+          member_nickname: r.member_nickname ?? r.memberNickname ?? r.nickname,
+          created_at: r.created_at ?? r.createdAt,
+          rating: r.rating,
+          content: r.content,
+          badges: r.badges ?? (r.badge ? [r.badge] : []),
+        }))
+      : [];
+
+    const photos = Array.isArray(s.photos) ? s.photos : [];
+
+    return { store, photos, review_summary, reviews };
+  }, [data]);
+
+  // 디버그 로그: 파라미터/원본 응답/정규화된 데이터
+  useEffect(() => {
+    if (id) console.log('[store_info] route id:', id);
+  }, [id]);
+
+  useEffect(() => {
+    if (data) console.log('[store_info] raw response:', data);
+  }, [data]);
+
+  useEffect(() => {
+    if (normalized) console.log('[store_info] normalized:', normalized);
+  }, [normalized]);
+
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
-  const { store, photos, review_summary, reviews } = storeData;
+  // 리뷰 등록 뮤테이션
+  const createReviewMutation = useMutation(createReviewOptions(id));
+
+  useEffect(() => {
+    if (normalized?.store?.favorite_check != null) {
+      setIsBookmarked(Boolean(normalized.store.favorite_check));
+    }
+  }, [normalized]);
+
+  if (isLoading) {
+    return (
+      <div className="h-full bg-white overflow-y-scroll scrollbar-hidden">
+        <PageHeader onBack={() => navigate(-1)} />
+        <div className="px-4 py-8 text-center text-gray-500">가게 정보를 불러오는 중...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="h-full bg-white overflow-y-scroll scrollbar-hidden">
+        <PageHeader onBack={() => navigate(-1)} />
+        <div className="px-4 py-8 text-center text-red-500">가게 정보를 불러오지 못했습니다.</div>
+      </div>
+    );
+  }
+
+  const { store, photos, review_summary, reviews } = normalized;
 
   const handleBack = () => navigate(-1);
   const handleBookmark = () => setIsBookmarked((v) => !v);
   const handleEdit = () => console.log('수정하기 클릭');
   const handlePhotoReport = () => console.log('사진 제보하기 클릭');
   const handleReview = () => setIsReviewModalOpen(true);
-  const handleReviewSubmit = (payload) => {
-    console.log('리뷰 제출:', payload);
-    setIsReviewModalOpen(false);
+  const handleReviewSubmit = async (payload) => {
+    try {
+      await createReviewMutation.mutateAsync(payload);
+      setIsReviewModalOpen(false);
+      // 성공 시 새로고침 또는 쿼리 무효화는 createMutationOptions의 invalidateKeys로 처리됨
+      alert('리뷰가 등록되었습니다.');
+    } catch (e) {
+      alert('리뷰 등록에 실패했습니다.');
+    }
   };
 
   const infoRows = [
-    { label: '종류', value: store.type_name },
+    { label: '종류', value: store.type_name || '-' },
     {
       label: '영업시간',
-      value: `${formatTime(store.opening_hours)} - ${formatTime(store.closing_hours)}`,
+      value:
+        store.opening_hours != null && store.closing_hours != null
+          ? `${formatTime(store.opening_hours)} - ${formatTime(store.closing_hours)}`
+          : '-',
     },
-    { label: '연락처', value: store.phone_number },
+    { label: '연락처', value: store.phone_number || '-' },
   ];
 
   return (
@@ -63,15 +186,15 @@ export default function StoreInfo() {
           storeId={store.store_id}
         />
 
-        <section className="pt-[3rem] px-[1.5rem]">
-          <RatingSummary
-            average={review_summary.average_rating}
-            count={review_summary.review_count}
-          />
-          <ReviewList reviews={reviews} />
-        </section>
-
-        <MapBox title="가게 위치" lat={store.store_coord.lat} lng={store.store_coord.lng} />
+        {review_summary && (
+          <section className="pt-[3rem] px-[1.5rem]">
+            <RatingSummary
+              average={review_summary.average_rating || 0}
+              count={review_summary.review_count || 0}
+            />
+            {Array.isArray(reviews) && reviews.length > 0 && <ReviewList reviews={reviews} />}
+          </section>
+        )}
       </div>
 
       {/* 하단 고정 버튼 */}

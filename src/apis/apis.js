@@ -6,7 +6,7 @@ import { createQueryOptions, createMutationOptions } from './queryOptions';
 export const storeDetailOptions = (storeId) =>
   createQueryOptions({
     queryKey: k.store.detail(storeId),
-    queryFn: ({ signal }) => apiGet(`/api/store/${storeId}`, { signal }),
+    queryFn: ({ signal }) => apiGet(`/api/stores/${storeId}`, { signal }),
     staleTime: 5 * 60_000,
   });
 
@@ -38,7 +38,7 @@ export const updateStoreOptions = (storeId) =>
 
 export const createReviewOptions = (storeId) =>
   createMutationOptions({
-    mutationFn: (payload) => apiPost(`/api/store/${storeId}/review`, payload),
+    mutationFn: (payload) => apiPost(`/api/stores/${storeId}/review`, payload),
     invalidateKeys: [k.store.reviews(storeId), k.store.detail(storeId)],
   });
 

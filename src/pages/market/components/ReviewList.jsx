@@ -54,7 +54,7 @@ export default function ReviewList({ reviews }) {
                 year: 'numeric',
                 month: '2-digit',
                 day: '2-digit',
-              })}
+              }).replace(/\.$/, '')}
             </span>
           </div>
 
