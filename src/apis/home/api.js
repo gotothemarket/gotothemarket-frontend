@@ -16,3 +16,10 @@ export const mapOptions = (params = {}) =>
     queryKey: k.home.map(params),
     queryFn: ({ signal }) => apiGet('/api/map', { signal, params }),
   });
+
+// 홈 지도 데이터 (/api/home)
+export const homeMapOptions = () =>
+  createQueryOptions({
+    queryKey: k.home.home(),
+    queryFn: ({ signal }) => apiGet('/api/home', { signal }),
+  });

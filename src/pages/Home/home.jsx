@@ -1,7 +1,7 @@
 // /src/pages/Home.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import pinUrl from '../../assets/pin.svg';
 import marketIconUrl from '../../assets/market_icon.svg';
 import { loadKakaoMaps, createMap, makeMarkerImage } from '../../utils/kakaoMap';
@@ -9,6 +9,7 @@ import CategoryChips from '../../components/CategoryChips';
 import DetailSheet from '../../components/DetailSheet';
 import BadgeModal from '../../components/BadgeModal';
 import { firstLaunchOptions } from '../../apis/apis';
+import { homeMapOptions } from '../../apis/home/api';
 import mapData from '../../mocks/map_mocks.json';
 
 export const Home = () => {
@@ -25,6 +26,7 @@ export const Home = () => {
 
   // first-launch API 호출
   const firstLaunchMutation = useMutation(firstLaunchOptions());
+  const { data: homeData } = useQuery(homeMapOptions());
 
   // 사용자가 처음 접속했는지 확인하는 함수
   const checkFirstVisit = async () => {
@@ -147,7 +149,7 @@ export const Home = () => {
   }, [currentLocation]);
 
   useEffect(() => {
-    if (!mapRef.current || !KAKAO_KEY) return;
+    if (!mapRef.current || !KAKAO_KEY || !homeData) return;
 
     const newMarkers = [];
 
@@ -208,9 +210,9 @@ export const Home = () => {
         selected: makeMarkerImage(marketIconUrl, { width: 42, height: 42 }),
       };
 
-      // Store 마커
-      mapData.data.pins.stores.forEach((store) => {
-        const pos = new window.kakao.maps.LatLng(store.store_coord.lat, store.store_coord.lng);
+      // Store 마커 (API 응답 사용)
+      homeData?.stores?.forEach((store) => {
+        const pos = new window.kakao.maps.LatLng(store.latitude, store.longitude);
         const marker = new window.kakao.maps.Marker({
           position: pos,
           image: STORE_IMG.normal,
@@ -218,20 +220,20 @@ export const Home = () => {
           opacity: 1,
         });
         window.kakao.maps.event.addListener(marker, 'click', () => {
-          setSelected({ type: 'store', id: store.store_id });
+          setSelected({ type: 'store', id: store.storeId });
         });
         newMarkers.push({
           marker,
           type: 'store',
-          id: store.store_id,
+          id: store.storeId,
           data: store,
           images: STORE_IMG,
         });
       });
 
-      // Market 마커
-      mapData.data.pins.markets.forEach((market) => {
-        const pos = new window.kakao.maps.LatLng(market.market_coord.lat, market.market_coord.lng);
+      // Market 마커 (API 응답 사용)
+      homeData?.markets?.forEach((market) => {
+        const pos = new window.kakao.maps.LatLng(market.latitude, market.longitude);
         const marker = new window.kakao.maps.Marker({
           position: pos,
           image: MARKET_IMG.normal,
@@ -239,12 +241,12 @@ export const Home = () => {
           opacity: 1,
         });
         window.kakao.maps.event.addListener(marker, 'click', () => {
-          setSelected({ type: 'market', id: market.market_id });
+          setSelected({ type: 'market', id: market.marketId });
         });
         newMarkers.push({
           marker,
           type: 'market',
-          id: market.market_id,
+          id: market.marketId,
           data: market,
           images: MARKET_IMG,
         });
@@ -260,7 +262,7 @@ export const Home = () => {
       newMarkers.forEach((m) => m.marker?.setMap(null));
       setMarkers([]);
     };
-  }, [KAKAO_KEY]);
+  }, [KAKAO_KEY, homeData]);
 
   const handleCloseDetailSheet = () => setSelected(null);
 

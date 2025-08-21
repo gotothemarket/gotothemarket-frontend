@@ -13,6 +13,7 @@ export const k = {
   home: {
     marketDetail: (marketId) => ['home', 'market', marketId],
     map: (params = {}) => ['home', 'map', params],
+    home: () => ['home', 'home'],
   },
 
   mypage: {
