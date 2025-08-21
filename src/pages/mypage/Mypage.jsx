@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import Header from '../../components/Header';
-import mypageData from '../../mocks/mypage_mocks.json';
+import { mypageAllOptions } from '../../apis/mypage/api';
 import favoriteIcon from '../../assets/favorite_icon.svg';
 import reviewIcon from '../../assets/review_icon.svg';
 
@@ -20,7 +21,47 @@ const Pill = ({ children }) => (
 
 const Mypage = () => {
   const navigate = useNavigate();
-  const { profile, favorites, reviews } = mypageData.data;
+
+  // API를 통해 마이페이지 데이터 가져오기
+  const { data: mypageData, isLoading, error } = useQuery(mypageAllOptions());
+
+  // 디버깅을 위한 콘솔 로그
+  console.log('API 응답 전체 데이터:', mypageData);
+  console.log('API 응답 data:', mypageData?.data);
+  console.log('API 응답 profile:', mypageData?.data?.profile);
+  console.log('로딩 상태:', isLoading);
+  console.log('에러 상태:', error);
+
+  // 로딩 상태 처리
+  if (isLoading) {
+    return (
+      <div className="bg-black min-h-screen pb-[8.3rem] flex items-center justify-center">
+        <div className="text-white text-[1.8rem]">로딩 중...</div>
+      </div>
+    );
+  }
+
+  // 에러 상태 처리
+  if (error) {
+    console.error('API 에러 상세:', error);
+    return (
+      <div className="bg-black min-h-screen pb-[8.3rem] flex items-center justify-center">
+        <div className="text-white text-[1.8rem]">데이터를 불러오는데 실패했습니다.</div>
+      </div>
+    );
+  }
+
+  // 데이터가 없을 경우 처리
+  if (!mypageData?.data?.profile) {
+    console.log('데이터가 없습니다. mypageData:', mypageData);
+    return (
+      <div className="bg-black min-h-screen pb-[8.3rem] flex items-center justify-center">
+        <div className="text-white text-[1.8rem]">데이터가 없습니다.</div>
+      </div>
+    );
+  }
+
+  const { profile } = mypageData.data;
 
   return (
     <div className="bg-black min-h-screen pb-[8.3rem]">
@@ -62,11 +103,12 @@ const Mypage = () => {
             onClick={() => navigate('/mypage/favorite')}
             className="text-primary-900 text-body-large cursor-pointer hover:opacity-80"
           >
-            {favorites.length}개 <span className="text-secondary-600 mr-[1.5rem]">〉</span>
+            {profile.favorites?.length || 0}개{' '}
+            <span className="text-secondary-600 mr-[1.5rem]">〉</span>
           </button>
         </div>
         <div className="mt-[1.2rem] pl-[4rem] pr-[1rem] flex gap-[1.2rem] overflow-x-auto">
-          {favorites.map((fav, idx) => (
+          {profile.favorites?.map((fav, idx) => (
             <div
               key={`fav-${idx}`}
               className="flex-shrink-0 flex flex-col justify-center items-center w-[12.8rem] h-[13rem] bg-[#181818] rounded-[1.2rem] p-[1rem] text-body-medium text-white"
@@ -83,7 +125,7 @@ const Mypage = () => {
                 {fav.store_name}
               </div>
             </div>
-          ))}
+          )) || <div className="text-[#787878] text-[1.4rem]">즐겨찾기한 가게가 없습니다.</div>}
         </div>
       </section>
 
@@ -101,11 +143,11 @@ const Mypage = () => {
             onClick={() => navigate('/mypage/review')}
             className="text-primary-900 text-body-large cursor-pointer hover:opacity-80 mr-[1.5rem]"
           >
-            {reviews.length}개 <span className="text-secondary-600">〉</span>
+            {profile.reviews?.length || 0}개 <span className="text-secondary-600">〉</span>
           </button>
         </div>
         <div className="mt-[1.2rem] pl-[4rem] pr-[1rem] flex gap-[1.2rem] overflow-x-auto">
-          {reviews.map((rv, idx) => (
+          {profile.reviews?.map((rv, idx) => (
             <div
               key={`rv-${idx}`}
               className="flex-shrink-0 flex flex-col justify-center items-center w-[12.8rem] h-[13rem] bg-[#181818] rounded-[1.2rem] p-[1rem] text-body-medium text-white"
@@ -118,7 +160,7 @@ const Mypage = () => {
                 {rv.store_name}
               </div>
             </div>
-          ))}
+          )) || <div className="text-[#787878] text-[1.4rem]">작성한 리뷰가 없습니다.</div>}
         </div>
       </section>
     </div>

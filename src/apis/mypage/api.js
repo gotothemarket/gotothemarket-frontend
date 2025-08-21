@@ -6,7 +6,7 @@ import { createQueryOptions, createMutationOptions } from '../queryOptions';
 export const mypageAllOptions = () =>
   createQueryOptions({
     queryKey: k.mypage.all(),
-    queryFn: ({ signal }) => apiGet('/api/mypage', { signal }),
+    queryFn: ({ signal }) => apiGet('/api/mypage?memberId=1', { signal }),
     staleTime: 60_000,
   });
 

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import storeData from '../../mocks/store_mocks.json';
+import { useQuery } from '@tanstack/react-query';
+import { storeDetailOptions } from '../../apis/apis';
 import Header from '../../components/Header';
 import trashIcon from '../../assets/trash_icon.svg';
 import closeIcon from '../../assets/close_icon_white.svg';
@@ -10,8 +11,19 @@ const StoreGallery = () => {
   const { storeId } = useParams();
   const [selectedPhoto, setSelectedPhoto] = useState(null);
 
-  // 실제로는 API에서 가게 정보를 가져와야 합니다
-  const { store, photos } = storeData;
+  const { data, isLoading, error } = useQuery(storeDetailOptions(storeId));
+
+  const normalized = useMemo(() => {
+    const s = data?.data ?? data ?? {};
+    const photos = Array.isArray(s.photos)
+      ? s.photos.map((p, i) => ({
+          photo_id: p.photo_id ?? p.photoId ?? p.id ?? i,
+          photo_url: p.photo_url ?? p.photoUrl ?? p.url,
+        }))
+      : [];
+    const store = s.store || {};
+    return { store, photos };
+  }, [data]);
 
   const handleBack = () => navigate(-1);
   const handlePhotoReport = () => console.log('사진 제보하기 클릭');
@@ -22,6 +34,26 @@ const StoreGallery = () => {
   const closeModal = () => {
     setSelectedPhoto(null);
   };
+
+  if (isLoading) {
+    return (
+      <div className="h-full bg-black">
+        <Header title="가게 사진" onBack={handleBack} variant="dark" />
+        <div className="p-4 text-center text-gray-300">불러오는 중…</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="h-full bg-black">
+        <Header title="가게 사진" onBack={handleBack} variant="dark" />
+        <div className="p-4 text-center text-red-400">사진을 불러올 수 없습니다.</div>
+      </div>
+    );
+  }
+
+  const { store, photos } = normalized;
 
   return (
     <div className="h-full bg-black">
@@ -53,7 +85,7 @@ const StoreGallery = () => {
               >
                 <img
                   src={photo.photo_url}
-                  alt={`${store.store_name} 사진 ${index + 1}`}
+                  alt={`사진 ${index + 1}`}
                   className="w-full h-full object-cover"
                 />
               </div>
