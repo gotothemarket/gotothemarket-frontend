@@ -81,21 +81,37 @@ const Mypage = () => {
       <section className="flex justify-center gap-[7rem] w-full px-[5.7rem] pt-[2rem] pb-[1rem] text-white">
         <div className="flex flex-col items-center justify-center gap-[1rem]">
           {/* Badge thumbnail */}
-          <div className="w-[7.2rem] h-[7.2rem] flex items-center justify-center">
+          <div
+            className="w-[7.2rem] h-[7.2rem] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => navigate('/mypage/badge')}
+          >
             <img
               src={profile.badges?.[0]?.badge_icon}
               alt="badge image"
               className="w-[5.6rem] h-[5.6rem]"
             />
           </div>
-          <div>{profile.badges?.[0] && <Pill>{profile.badges[0].badge_name}</Pill>}</div>
+          <div
+            className="cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => navigate('/mypage/badge')}
+          >
+            {profile.badges?.[0] && <Pill>{profile.badges[0].badge_name}</Pill>}
+          </div>
           <div className="text-[2.4rem] font-semibold">{profile.nickname}</div>
         </div>
 
         <div className="mt-[2.4rem] flex flex-col gap-[3rem]">
           <StatItem label="제보한 가게" value={profile.store_count} />
           <StatItem label="리뷰" value={profile.review_count} />
-          <StatItem label="획득한 뱃지" value={profile.badge_count} />
+          <div
+            className="flex items-center gap-[1rem] w-[8rem] cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => navigate('/mypage/badge')}
+          >
+            <span className="text-white text-body-large whitespace-nowrap">획득한 뱃지</span>
+            <span className="text-secondary-600 text-white-bold font-semibold">
+              {profile.badge_count}
+            </span>
+          </div>
         </div>
       </section>
 

@@ -34,6 +34,6 @@ export const myReviewsOptions = (filters = {}) =>
 export const myBadgesOptions = () =>
   createQueryOptions({
     queryKey: k.mypage.badges(),
-    queryFn: ({ signal }) => apiGet('/api/mypage/badge', { signal }),
+    queryFn: ({ signal }) => apiGet('/api/badges?memberId=1', { signal }),
     staleTime: 10 * 60_000,
   });
