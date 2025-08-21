@@ -4,7 +4,12 @@ let kakaoLoadingPromise = null;
 /** Kakao Maps SDK를 로드하고 window.kakao 반환 */
 export function loadKakaoMaps(appKey) {
   if (typeof window === 'undefined') return Promise.reject(new Error('SSR not supported'));
-  if (window.kakao?.maps) return Promise.resolve(window.kakao);
+
+  // 이미 로드되어 있고 maps 객체도 사용 가능한 경우
+  if (window.kakao?.maps && typeof window.kakao.maps.load === 'function') {
+    return Promise.resolve(window.kakao);
+  }
+
   if (kakaoLoadingPromise) return kakaoLoadingPromise;
 
   kakaoLoadingPromise = new Promise((resolve, reject) => {
@@ -12,7 +17,13 @@ export function loadKakaoMaps(appKey) {
     script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false&libraries=services`;
     script.async = true;
     script.onerror = () => reject(new Error('Failed to load Kakao Maps SDK'));
-    script.onload = () => window.kakao.maps.load(() => resolve(window.kakao));
+    script.onload = () => {
+      if (window.kakao?.maps?.load) {
+        window.kakao.maps.load(() => resolve(window.kakao));
+      } else {
+        reject(new Error('Kakao Maps SDK loaded but maps object not available'));
+      }
+    };
     document.head.appendChild(script);
   });
 

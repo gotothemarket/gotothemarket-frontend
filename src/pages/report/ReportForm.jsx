@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
 import MapBox from '../market/components/MapBox';
+import { reportStoreOptions } from '../../apis/apis';
 import closeIcon from '../../assets/close_icon.svg';
 import backIcon from '../../assets/left_arrow.svg';
-import dropdownOpenedIcon from '../../assets/dropdown_opened.svg';
-import dropdownClosedIcon from '../../assets/dropdown_closed.svg';
 import CategoryChip from '../../components/CategoryChip';
 import produceIcon from '../../assets/과일야채.svg';
 import seafoodIcon from '../../assets/수산.svg';
@@ -20,37 +20,14 @@ const ReportForm = () => {
   const location = useLocation();
   const { location: selectedLocation, address } = location.state || {};
 
-  const [marketName, setMarketName] = useState('상도전통시장');
   const [storeName, setStoreName] = useState('');
   const [storeType, setStoreType] = useState('');
   const [startTime, setStartTime] = useState('오전 9시');
   const [endTime, setEndTime] = useState('오후 9시');
   const [contact, setContact] = useState('');
-  const [isMarketDropdownOpen, setIsMarketDropdownOpen] = useState(false);
 
-  const dropdownRef = useRef(null);
-
-  const marketOptions = [
-    '상도전통시장',
-    '흑석시장',
-    '성대전통시장',
-    '남성역골목시장',
-    '남성사계시장',
-  ];
-
-  // 드롭다운 외부 클릭 시 닫기
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsMarketDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+  // 가게 제보 API 호출
+  const reportStoreMutation = useMutation(reportStoreOptions());
 
   const handleBack = () => {
     navigate(-1);
@@ -60,25 +37,71 @@ const ReportForm = () => {
     navigate('/'); // 홈으로 이동
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!storeName.trim()) {
       alert('가게 이름을 입력해주세요.');
       return;
     }
 
+    if (!storeType) {
+      alert('가게 종류를 선택해주세요.');
+      return;
+    }
+
+    // API 요청 본문 형식에 맞춰 데이터 변환
     const storeData = {
-      location: selectedLocation,
-      address: address,
-      marketName,
-      storeName,
-      storeType,
-      businessHours: `${startTime} - ${endTime}`,
-      contact,
+      memberId: 1, // 임시로 1로 설정 (실제로는 로그인된 사용자 ID 사용)
+      storeType: getStoreTypeNumber(storeType), // 문자열을 숫자로 변환
+      storeName: storeName.trim(),
+      address: address || '주소 정보 없음',
+      storeCoord: {
+        lat: selectedLocation.lat,
+        lng: selectedLocation.lng,
+      },
+      phoneNumber: contact.trim() || '',
+      openingHours: startTime,
+      closingHours: endTime,
+      storeIcon: getStoreIcon(storeType), // 가게 종류에 따른 아이콘
     };
 
-    console.log('등록할 가게 정보:', storeData);
-    alert('가게가 등록되었습니다!');
-    navigate('/');
+    try {
+      await reportStoreMutation.mutateAsync(storeData);
+      alert('가게가 성공적으로 제보되었습니다!');
+      navigate('/');
+    } catch (error) {
+      console.error('가게 제보 에러:', error);
+      alert('가게 제보에 실패했습니다. 다시 시도해주세요.');
+    }
+  };
+
+  // 가게 종류를 숫자로 변환하는 함수
+  const getStoreTypeNumber = (storeType) => {
+    const typeMap = {
+      produce: 1, // 과일·야채
+      seafood: 2, // 수산
+      restaurant: 3, // 식당
+      clothing: 4, // 의류
+      misc: 5, // 잡화
+      meat: 6, // 축산
+      street: 7, // 길거리음식
+      bakery: 8, // 빵·떡
+    };
+    return typeMap[storeType] || 0;
+  };
+
+  // 가게 종류에 따른 아이콘 반환 함수
+  const getStoreIcon = (storeType) => {
+    const iconMap = {
+      produce: '과일야채',
+      seafood: '수산',
+      restaurant: '요리',
+      clothing: '의류',
+      misc: '잡화',
+      meat: '축산',
+      street: '길거리',
+      bakery: '빵떡',
+    };
+    return iconMap[storeType] || '잡화';
   };
 
   const storeTypes = [
@@ -132,9 +155,20 @@ const ReportForm = () => {
         {/* 스크롤 가능한 컨텐츠 */}
         <div className="flex-1 overflow-y-auto relative">
           {/* 지도 */}
-          <div className="px-4 mb-6">
+          <div className="px-4 mb-8">
             <div className="w-full h-[200px] rounded-[1rem] overflow-hidden">
-              <MapBox title="" lat={selectedLocation.lat} lng={selectedLocation.lng} />
+              {selectedLocation && selectedLocation.lat && selectedLocation.lng ? (
+                <MapBox
+                  title=""
+                  lat={selectedLocation.lat}
+                  lng={selectedLocation.lng}
+                  className="h-[200px]"
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-500">
+                  <p>위치 정보를 불러올 수 없습니다.</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -147,56 +181,6 @@ const ReportForm = () => {
               >
                 {address || '주소를 가져올 수 없습니다'}
               </p>
-            </div>
-          </div>
-
-          {/* 시장 선택 */}
-          <div className="px-[2.1rem] mb-8">
-            <h3
-              className="text-[1.4rem] font-semibold mb-4 text-[#0A0A0A]"
-              style={{ fontFamily: 'Pretendard Variable' }}
-            >
-              어느 시장의 가게인가요?
-            </h3>
-            <div className="relative" ref={dropdownRef}>
-              {/* 드롭다운 버튼 */}
-              <button
-                onClick={() => setIsMarketDropdownOpen(!isMarketDropdownOpen)}
-                className="w-full h-[4.4rem] px-4 rounded-[1rem] bg-[#FFF8C8] text-[1.4rem] font-normal leading-normal flex items-center justify-between border border-[#F4EBAA]"
-                style={{ fontFamily: 'Pretendard Variable', color: '#969696' }}
-              >
-                <span>{marketName}</span>
-                <img
-                  src={isMarketDropdownOpen ? dropdownOpenedIcon : dropdownClosedIcon}
-                  alt={isMarketDropdownOpen ? '드롭다운 열림' : '드롭다운 닫힘'}
-                  className="w-5 h-5"
-                />
-              </button>
-
-              {/* 드롭다운 메뉴 */}
-              {isMarketDropdownOpen && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-[1rem] shadow-lg border border-gray-200 z-10">
-                  {marketOptions.map((option, index) => (
-                    <button
-                      key={option}
-                      onClick={() => {
-                        setMarketName(option);
-                        setIsMarketDropdownOpen(false);
-                      }}
-                      className={`w-full h-[4.4rem] px-4 text-left text-[1.4rem] font-normal leading-normal ${
-                        index % 2 === 0
-                          ? 'bg-[#FFF8C8] text-[#969696]'
-                          : 'bg-[#FFF6BE] text-[#969696] border-[#F4EBAA] border-[0.8px]'
-                      } ${option === marketOptions[0] ? 'rounded-t-[1rem]' : ''} ${
-                        option === marketOptions[marketOptions.length - 1] ? 'rounded-b-[1rem]' : ''
-                      }`}
-                      style={{ fontFamily: 'Pretendard Variable' }}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
 
@@ -305,15 +289,15 @@ const ReportForm = () => {
 
         <button
           onClick={handleSubmit}
-          disabled={!storeName.trim()}
+          disabled={!storeName.trim() || !storeType || reportStoreMutation.isPending}
           className={`w-full h-[4.4rem] pb-[7.2rem] pt-[2.3rem] text-[1.4rem] font-semibold transition-all ${
-            storeName.trim()
+            storeName.trim() && storeType && !reportStoreMutation.isPending
               ? 'bg-[#FF9C1F] text-[#FEFEFE] hover:bg-[#FF8A00] active:scale-[0.98]'
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
           style={{ fontFamily: 'Pretendard Variable' }}
         >
-          가게 등록하기
+          {reportStoreMutation.isPending ? '제출 중...' : '가게 등록하기'}
         </button>
       </div>
     </div>

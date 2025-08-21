@@ -24,6 +24,12 @@ export const createStoreOptions = () =>
     invalidateKeys: [k.store.all()],
   });
 
+export const reportStoreOptions = () =>
+  createMutationOptions({
+    mutationFn: (payload) => apiPost('/api/stores', payload),
+    invalidateKeys: [k.store.all()],
+  });
+
 export const updateStoreOptions = (storeId) =>
   createMutationOptions({
     mutationFn: (payload) => apiPatch(`/api/store/${storeId}`, payload),
