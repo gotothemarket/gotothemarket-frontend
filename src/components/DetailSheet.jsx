@@ -7,6 +7,7 @@ import InfoRows from '../pages/market/components/InfoRows';
 import PhotoStrip from '../pages/market/components/PhotoStrip';
 import marketIcon from '../assets/market_icon.svg';
 import { marketDetailOptions } from '../apis/home/api';
+import { storeDetailOptions } from '../apis/apis';
 
 // selected: { type: 'store'|'market', id?, data? }
 export default function DetailSheet({ selected, onClose, showMap = false }) {
@@ -42,24 +43,18 @@ export default function DetailSheet({ selected, onClose, showMap = false }) {
       setState({ loading: true, error: null, payload: null });
 
       try {
-        // 1) 이미 data가 들어오면 그대로 사용
+        // 이미 data가 들어오면 그대로 사용
         if (selected.data) {
           if (!cancel) setState({ loading: false, error: null, payload: selected.data });
           return;
         }
-        // 2) 가게는 목업 유지 (시장 상세는 아래 별도 쿼리 처리)
-        if (selected.type === 'store') {
-          const res = (await import('../mocks/store_mocks.json')).default;
-          if (!cancel) setState({ loading: false, error: null, payload: res });
-        } else {
-          throw new Error('Unknown type');
-        }
+        // 쿼리에서 가져오도록 로컬 상태는 비움
+        if (!cancel) setState({ loading: false, error: null, payload: null });
       } catch (e) {
         if (!cancel) setState({ loading: false, error: e, payload: null });
       }
     }
-    // 시장 상세는 React Query 사용
-    if (selected.type !== 'market') run();
+    run();
     return () => {
       cancel = true;
     };
@@ -73,10 +68,18 @@ export default function DetailSheet({ selected, onClose, showMap = false }) {
     enabled: !!isMarket && !!marketId,
   });
 
+  // 가게 상세: API 연동
+  const isStore = selected?.type === 'store';
+  const storeId = isStore ? selected?.id : undefined;
+  const storeQuery = useQuery({
+    ...storeDetailOptions(storeId),
+    enabled: !!isStore && !!storeId,
+  });
+
   return (
     <HomeBottomsheet open={open} onClose={onClose} onFullPage={handleFullPage}>
       {/* Loading */}
-      {((selected?.type !== 'market' && loading) || (isMarket && marketQuery.isLoading)) && (
+      {((isStore && storeQuery.isLoading) || (isMarket && marketQuery.isLoading)) && (
         <div className="p-6 text-center text-gray-500 flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mr-3"></div>
           불러오는 중…
@@ -84,7 +87,7 @@ export default function DetailSheet({ selected, onClose, showMap = false }) {
       )}
 
       {/* Error */}
-      {((selected?.type !== 'market' && error) || (isMarket && marketQuery.error)) && (
+      {((isStore && storeQuery.error) || (isMarket && marketQuery.error)) && (
         <div className="p-6 text-center text-red-500">
           <div className="mb-2">⚠️</div>
           불러오기에 실패했어요
@@ -97,8 +100,8 @@ export default function DetailSheet({ selected, onClose, showMap = false }) {
         </div>
       )}
 
-      {!isMarket && !loading && !error && selected?.type === 'store' && payload && (
-        <StoreDetail payload={payload} />
+      {isStore && !storeQuery.isLoading && !storeQuery.error && storeQuery.data && (
+        <StoreDetail payload={normalizeStorePayload(storeQuery.data)} />
       )}
 
       {isMarket && !marketQuery.isLoading && !marketQuery.error && marketQuery.data && (
@@ -196,4 +199,58 @@ function formatHHMM(time) {
 
 function normalizePhotos(photos) {
   return photos.map((p, i) => ({ photo_id: p.photo_id ?? i, photo_url: p.photo_url }));
+}
+
+/* ============ helpers (store normalize) ============ */
+function normalizeStorePayload(data) {
+  const s = data?.data ?? data ?? {};
+
+  const toTimeNumber = (t) => {
+    if (t == null) return undefined;
+    if (typeof t === 'number') return t;
+    const m = String(t).match(/^(\d{1,2}):(\d{2})$/);
+    if (m) return Number(m[1]) * 100 + Number(m[2]);
+    return undefined;
+  };
+
+  const typeLabelByNumber = {
+    1: '과일·야채',
+    2: '수산',
+    3: '식당',
+    4: '빵·떡',
+    5: '잡화',
+    6: '길거리음식',
+    7: '축산',
+    8: '의류',
+  };
+
+  const srcStore = s.store ?? s;
+  const coord = srcStore.storeCoord ??
+    srcStore.coord ??
+    srcStore.location ?? {
+      lat: srcStore.lat,
+      lng: srcStore.lng,
+    };
+
+  const store = {
+    store_id: srcStore.storeId ?? srcStore.id,
+    store_name: srcStore.storeName ?? srcStore.name,
+    store_icon: srcStore.storeIcon ?? srcStore.icon,
+    favorite_check: Boolean(srcStore.favoriteCheck ?? srcStore.favorite_check),
+    store_coord: coord,
+    type_name:
+      srcStore.typeName ?? typeLabelByNumber?.[srcStore.storeType] ?? srcStore.type_name ?? '',
+    opening_hours: toTimeNumber(srcStore.openingHours ?? srcStore.opening_hours),
+    closing_hours: toTimeNumber(srcStore.closingHours ?? srcStore.closing_hours),
+    phone_number: srcStore.phoneNumber ?? srcStore.phone_number ?? '',
+  };
+
+  const photos = Array.isArray(s.photos)
+    ? s.photos.map((p, i) => ({
+        photo_id: p.photo_id ?? p.id ?? i,
+        photo_url: p.photo_url ?? p.url,
+      }))
+    : [];
+
+  return { store, photos };
 }
