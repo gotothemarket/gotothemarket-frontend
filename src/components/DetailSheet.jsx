@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import HomeBottomsheet from '../components/HomeBottomsheet'; // 업데이트된 컴포넌트
 import EntityHeader from '../pages/market/components/EntityHeader';
 import InfoRows from '../pages/market/components/InfoRows';
 import PhotoStrip from '../pages/market/components/PhotoStrip';
 import marketIcon from '../assets/market_icon.svg';
+import { marketDetailOptions } from '../apis/home/api';
 
 // selected: { type: 'store'|'market', id?, data? }
 export default function DetailSheet({ selected, onClose, showMap = false }) {
@@ -45,12 +47,9 @@ export default function DetailSheet({ selected, onClose, showMap = false }) {
           if (!cancel) setState({ loading: false, error: null, payload: selected.data });
           return;
         }
-        // 2) 예시: 목업 fetch (실서비스는 API 호출로 교체)
+        // 2) 가게는 목업 유지 (시장 상세는 아래 별도 쿼리 처리)
         if (selected.type === 'store') {
           const res = (await import('../mocks/store_mocks.json')).default;
-          if (!cancel) setState({ loading: false, error: null, payload: res });
-        } else if (selected.type === 'market') {
-          const res = (await import('../mocks/market_mocks.json')).default;
           if (!cancel) setState({ loading: false, error: null, payload: res });
         } else {
           throw new Error('Unknown type');
@@ -59,22 +58,33 @@ export default function DetailSheet({ selected, onClose, showMap = false }) {
         if (!cancel) setState({ loading: false, error: e, payload: null });
       }
     }
-    run();
+    // 시장 상세는 React Query 사용
+    if (selected.type !== 'market') run();
     return () => {
       cancel = true;
     };
   }, [selected]);
 
+  // 시장 상세: API 연동
+  const isMarket = selected?.type === 'market';
+  const marketId = isMarket ? selected?.id : undefined;
+  const marketQuery = useQuery({
+    ...marketDetailOptions(marketId),
+    enabled: !!isMarket && !!marketId,
+  });
+
   return (
     <HomeBottomsheet open={open} onClose={onClose} onFullPage={handleFullPage}>
-      {loading && (
+      {/* Loading */}
+      {((selected?.type !== 'market' && loading) || (isMarket && marketQuery.isLoading)) && (
         <div className="p-6 text-center text-gray-500 flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mr-3"></div>
           불러오는 중…
         </div>
       )}
 
-      {error && (
+      {/* Error */}
+      {((selected?.type !== 'market' && error) || (isMarket && marketQuery.error)) && (
         <div className="p-6 text-center text-red-500">
           <div className="mb-2">⚠️</div>
           불러오기에 실패했어요
@@ -87,12 +97,12 @@ export default function DetailSheet({ selected, onClose, showMap = false }) {
         </div>
       )}
 
-      {!loading && !error && selected?.type === 'store' && payload && (
+      {!isMarket && !loading && !error && selected?.type === 'store' && payload && (
         <StoreDetail payload={payload} />
       )}
 
-      {!loading && !error && selected?.type === 'market' && payload && (
-        <MarketDetail payload={payload} />
+      {isMarket && !marketQuery.isLoading && !marketQuery.error && marketQuery.data && (
+        <MarketDetail payload={marketQuery.data} />
       )}
     </HomeBottomsheet>
   );
@@ -147,57 +157,31 @@ function StoreDetail({ payload }) {
 /* ========== MARKET =========== */
 /* ============================= */
 function MarketDetail({ payload }) {
-  // 목업/API 형태 방어 (payload.data 형태 or 직접 필드)
-  const { market, photos = [] } = payload.data ?? payload;
-
-  const stallText =
-    typeof market.stall_store_count === 'number' && market.stall_store_count > 0
-      ? ` (노점 ${market.stall_store_count}개)`
-      : '';
-
+  // API 응답 필드 사용
   const rows = [
-    { label: '개업연수', value: market.opening_years ? `${market.opening_years}년` : '정보 없음' },
-    { label: '개설주기', value: market.opening_cycle || '정보 없음' },
-    { label: '점포 수', value: `${market.fixed_store_count ?? 0}개${stallText}` },
-    { label: '운영시간', value: market.operating_hours || '정보 없음' },
+    { label: '주소', value: payload.marketAddress || '정보 없음' },
+    { label: '개업연수', value: payload.openingYears ? `${payload.openingYears}년` : '정보 없음' },
+    { label: '개설주기', value: payload.openingCycle || '정보 없음' },
+    { label: '점포 수', value: `${payload.storeCount ?? 0}개` },
+    { label: '교통', value: payload.transport || '정보 없음' },
+    { label: '주차', value: payload.parking ? '가능' : '불가' },
+    { label: '화장실', value: payload.toilet ? '있음' : '없음' },
   ];
+
+  const photos = (payload.marketMainImageUrls || []).map((url, i) => ({
+    photo_id: i,
+    photo_url: url,
+  }));
 
   return (
     <div className="px-2 pb-6">
-      <EntityHeader icon={marketIcon} title={market.market_name} subtitle={market.market_address} />
+      <EntityHeader icon={marketIcon} title={payload.marketName} subtitle={payload.marketAddress} />
 
       <section className="">
         <InfoRows title="시장 정보" rows={rows} />
       </section>
 
       <PhotoStrip title="시장 대표 사진" isMarket={true} photos={normalizePhotos(photos)} />
-
-      {/* 주요 상점 미리보기 */}
-      {market.featured_stores && market.featured_stores.length > 0 && (
-        <section className="mt-6">
-          <div className="px-[1.5rem]">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">주요 상점</h3>
-            <div className="space-y-2">
-              {market.featured_stores.slice(0, 3).map((store, index) => (
-                <div key={index} className="flex items-center p-3 bg-gray-50 rounded-lg">
-                  <div className="w-10 h-10 bg-gray-200 rounded-full mr-3 flex items-center justify-center">
-                    🏪
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{store.name}</p>
-                    <p className="text-xs text-gray-500">{store.category}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* 필요 시 지도를 시트에서도 노출
-      {showMap && (
-        <MapBox title="시장 위치" lat={market.market_coord?.lat} lng={market.market_coord?.lng} />
-      )} */}
     </div>
   );
 }

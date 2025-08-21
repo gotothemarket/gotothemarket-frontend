@@ -6,7 +6,7 @@ import { createQueryOptions } from '../queryOptions';
 export const marketDetailOptions = (marketId) =>
   createQueryOptions({
     queryKey: k.home.marketDetail(marketId),
-    queryFn: ({ signal }) => apiGet(`/api/market/${marketId}`, { signal }),
+    queryFn: ({ signal }) => apiGet(`/api/markets/${marketId}`, { signal }),
     staleTime: 5 * 60_000,
   });
 
