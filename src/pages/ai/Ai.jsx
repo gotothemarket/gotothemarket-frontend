@@ -344,7 +344,7 @@ const Ai = () => {
       >
         <Header
           title="AI 코스 추천"
-          onBack={() => {}}
+          onBack={() => navigate(-1)}
           backgroundColor="rgba(254, 254, 254, 0.30)"
         />
 
@@ -457,7 +457,7 @@ const Ai = () => {
 
                 <button
                   onClick={handleSubmitRecommendation}
-                  disabled={storeSets.length === 0}
+                  disabled={storeSets.length < 2}
                   className="mx-auto mt-[4.8rem] flex justify-center items-center flex-shrink-0 rounded-[1rem] bg-[#FF9C1F] w-[30rem] h-[4.8rem] text-white font-semibold text-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   코스 추천받기

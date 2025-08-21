@@ -70,12 +70,12 @@ const AiResult = () => {
   const handleClose = () => {
     if (showAsPopup) {
       setIsVisible(false);
-      // 애니메이션 완료 후 이전 페이지로 이동
+      // 애니메이션 완료 후 홈화면으로 이동
       setTimeout(() => {
-        navigate(-1);
+        navigate('/');
       }, 300);
     } else {
-      navigate(-1);
+      navigate('/');
     }
   };
 
