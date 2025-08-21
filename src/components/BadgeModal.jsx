@@ -6,7 +6,7 @@ const BadgeModal = ({ isOpen, onClose, badgeInfo }) => {
 
   // API에서 받은 뱃지 정보가 있으면 사용, 없으면 기본값 사용
   const badgeName = badgeInfo?.badge_name || '용감한 첫 발자국';
-  const badgeIcon = badgeInfo?.badge_icon || firstFootprintBadge;
+  const badgeIcon = firstFootprintBadge;
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>

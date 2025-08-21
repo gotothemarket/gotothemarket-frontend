@@ -15,6 +15,7 @@ import { formatTime } from '../../utils/formatTime';
 import { storeDetailOptions } from '../../apis/apis';
 import { useMutation } from '@tanstack/react-query';
 import { createReviewOptions } from '../../apis/apis';
+import { toggleFavoriteOptions } from '../../apis/apis';
 
 export default function StoreInfo() {
   const navigate = useNavigate();
@@ -108,6 +109,8 @@ export default function StoreInfo() {
 
   // 리뷰 등록 뮤테이션
   const createReviewMutation = useMutation(createReviewOptions(id));
+  // 즐겨찾기 토글 뮤테이션
+  const toggleFavoriteMutation = useMutation(toggleFavoriteOptions(id));
 
   useEffect(() => {
     if (normalized?.store?.favorite_check != null) {
@@ -136,7 +139,15 @@ export default function StoreInfo() {
   const { store, photos, review_summary, reviews } = normalized;
 
   const handleBack = () => navigate(-1);
-  const handleBookmark = () => setIsBookmarked((v) => !v);
+  const handleBookmark = async () => {
+    try {
+      const action = isBookmarked ? 'remove' : 'add';
+      await toggleFavoriteMutation.mutateAsync({ action });
+      setIsBookmarked((v) => !v);
+    } catch (e) {
+      alert('즐겨찾기 처리에 실패했습니다.');
+    }
+  };
   const handleEdit = () => console.log('수정하기 클릭');
   const handlePhotoReport = () => console.log('사진 제보하기 클릭');
   const handleReview = () => setIsReviewModalOpen(true);

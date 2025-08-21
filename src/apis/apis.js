@@ -64,8 +64,8 @@ export const registerLocationOptions = () =>
 // 즐겨찾기 등록 & 취소 (POST 토글이라고 적혀 있었음)
 export const toggleFavoriteOptions = (storeId) =>
   createMutationOptions({
-    mutationFn: (payload /* { on: boolean } or 빈값 */) =>
-      apiPost(`/api/store/${storeId}/favorite`, payload),
+    mutationFn: (payload /* { action: 'add' | 'remove' } */) =>
+      apiPost(`/api/stores/${storeId}/toggle-favorite`, payload),
     invalidateKeys: [k.store.favorite(storeId), k.mypage.favorites(), k.store.detail(storeId)],
   });
 
