@@ -148,7 +148,23 @@ export default function StoreInfo() {
       alert('즐겨찾기 처리에 실패했습니다.');
     }
   };
-  const handleEdit = () => console.log('수정하기 클릭');
+  const handleEdit = () => {
+    // 제보 폼을 수정 모드로 열기: 기존 데이터 전달
+    navigate('/report/form', {
+      state: {
+        mode: 'edit',
+        storeId: store.store_id,
+        initial: {
+          storeName: store.store_name,
+          storeTypeName: store.type_name,
+          openingHours: store.opening_hours,
+          closingHours: store.closing_hours,
+          phoneNumber: store.phone_number,
+          coord: store.store_coord,
+        },
+      },
+    });
+  };
   const handlePhotoReport = () => console.log('사진 제보하기 클릭');
   const handleReview = () => setIsReviewModalOpen(true);
   const handleReviewSubmit = async (payload) => {

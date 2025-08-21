@@ -84,7 +84,6 @@ export default function MarketInfo() {
   }
 
   const handleBack = () => navigate(-1);
-  const handleEdit = () => console.log('시장 정보 수정');
   const handlePhotoReport = () => console.log('시장 사진 제보하기');
 
   // 표시값 유틸 (필요 시 사용)
@@ -103,7 +102,7 @@ export default function MarketInfo() {
           // bookmark 생략 (원하면 bookmark, onToggleBookmark 추가)
         />
 
-        <InfoRows title="전통시장 정보" rows={rows} onEdit={handleEdit} />
+        <InfoRows title="전통시장 정보" rows={rows} />
 
         <PhotoStrip
           title="시장 대표 사진"

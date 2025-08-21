@@ -32,7 +32,7 @@ export const reportStoreOptions = () =>
 
 export const updateStoreOptions = (storeId) =>
   createMutationOptions({
-    mutationFn: (payload) => apiPatch(`/api/store/${storeId}`, payload),
+    mutationFn: (payload) => apiPatch(`/api/stores/${storeId}`, payload),
     invalidateKeys: [k.store.detail(storeId), k.store.all()],
   });
 

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import MapBox from '../market/components/MapBox';
-import { reportStoreOptions } from '../../apis/apis';
+import { reportStoreOptions, updateStoreOptions } from '../../apis/apis';
+import { loadKakaoMaps } from '../../utils/kakaoMap';
 import closeIcon from '../../assets/close_icon.svg';
 import backIcon from '../../assets/left_arrow.svg';
 import CategoryChip from '../../components/CategoryChip';
@@ -18,16 +19,71 @@ import bakeryIcon from '../../assets/빵떡.svg';
 const ReportForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { location: selectedLocation, address } = location.state || {};
+  const { location: selectedLocation, address, mode, storeId, initial } = location.state || {};
+  const effectiveLocation = selectedLocation || initial?.coord || null;
+  const KAKAO_KEY = import.meta.env.VITE_KAKAO_MAP_API_KEY;
 
-  const [storeName, setStoreName] = useState('');
+  const [storeName, setStoreName] = useState(initial?.storeName || '');
   const [storeType, setStoreType] = useState('');
-  const [startTime, setStartTime] = useState('오전 9시');
-  const [endTime, setEndTime] = useState('오후 9시');
-  const [contact, setContact] = useState('');
+  const [startTime, setStartTime] = useState(
+    initial?.openingHours ? toTimeString(initial.openingHours) : '오전 9시',
+  );
+  const [endTime, setEndTime] = useState(
+    initial?.closingHours ? toTimeString(initial.closingHours) : '오후 9시',
+  );
+  const [contact, setContact] = useState(initial?.phoneNumber || '');
+  const [displayAddress, setDisplayAddress] = useState(address || initial?.address || '');
 
   // 가게 제보 API 호출
   const reportStoreMutation = useMutation(reportStoreOptions());
+  const updateStoreMutation = useMutation(updateStoreOptions(storeId));
+
+  // 초기 타입 세팅 (텍스트 → 내부 id 매핑은 간단화)
+  useEffect(() => {
+    if (initial?.storeTypeName) {
+      const id = reverseTypeMap(initial.storeTypeName);
+      if (id) setStoreType(id);
+    }
+  }, [initial?.storeTypeName]);
+
+  // 좌표 → 주소 역지오코딩 (주소가 없을 때만)
+  useEffect(() => {
+    let cancelled = false;
+    async function ensureKakao() {
+      if (window.kakao?.maps?.services) return true;
+      if (!KAKAO_KEY) return false;
+      try {
+        await loadKakaoMaps(KAKAO_KEY);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    async function geocode() {
+      if (!effectiveLocation || !effectiveLocation.lat || !effectiveLocation.lng) return;
+      if (displayAddress) return; // 이미 주소가 있으면 스킵
+      const ok = await ensureKakao();
+      if (!ok) return;
+      try {
+        const geocoder = new window.kakao.maps.services.Geocoder();
+        geocoder.coord2Address(effectiveLocation.lng, effectiveLocation.lat, (result, status) => {
+          if (cancelled) return;
+          if (status === window.kakao.maps.services.Status.OK) {
+            const name = result?.[0]?.address?.address_name || '';
+            if (name) setDisplayAddress(name);
+          }
+        });
+      } catch (e) {
+        console.warn('주소 역지오코딩 실패:', e);
+      }
+    }
+
+    geocode();
+    return () => {
+      cancelled = true;
+    };
+  }, [effectiveLocation?.lat, effectiveLocation?.lng, displayAddress, KAKAO_KEY]);
 
   const handleBack = () => {
     navigate(-1);
@@ -49,14 +105,27 @@ const ReportForm = () => {
     }
 
     // API 요청 본문 형식에 맞춰 데이터 변환
+    const typeNumber = getStoreTypeNumber(storeType);
+    const typeNameById = {
+      1: '과일·야채',
+      2: '수산',
+      3: '식당',
+      4: '빵·떡',
+      5: '잡화',
+      6: '길거리음식',
+      7: '축산',
+      8: '의류',
+    };
     const storeData = {
       memberId: 1, // 임시로 1로 설정 (실제로는 로그인된 사용자 ID 사용)
-      storeType: getStoreTypeNumber(storeType), // 문자열을 숫자로 변환
+      storeType: typeNumber, // 숫자 타입
+      storeTypeId: typeNumber, // PATCH 대비 호환 필드
+      storeTypeName: typeNameById[typeNumber],
       storeName: storeName.trim(),
-      address: address || '주소 정보 없음',
+      address: displayAddress || address || initial?.address || '주소 정보 없음',
       storeCoord: {
-        lat: selectedLocation.lat,
-        lng: selectedLocation.lng,
+        lat: selectedLocation?.lat ?? initial?.coord?.lat,
+        lng: selectedLocation?.lng ?? initial?.coord?.lng,
       },
       phoneNumber: contact.trim() || '',
       openingHours: startTime,
@@ -67,24 +136,30 @@ const ReportForm = () => {
     console.log('🚀 가게 제보 요청 데이터:', storeData);
 
     try {
-      const response = await reportStoreMutation.mutateAsync(storeData);
+      const response =
+        mode === 'edit'
+          ? await updateStoreMutation.mutateAsync(storeData)
+          : await reportStoreMutation.mutateAsync(storeData);
 
-      console.log('✅ 가게 제보 성공 응답:', response);
+      console.log('✅ 가게 제보/수정 성공 응답:', response);
 
-      // 응답에서 가게 ID 추출 (응답 구조에 따라 조정 필요)
-      const storeId =
-        response?.storeId || response?.id || response?.data?.storeId || response?.data?.id;
+      // 응답에서 가게 ID 추출 (없으면 수정 모드의 storeId 사용)
+      const responseStoreId =
+        response?.storeId ?? response?.id ?? response?.data?.storeId ?? response?.data?.id;
+      const resolvedStoreId = responseStoreId ?? (mode === 'edit' ? storeId : undefined);
 
-      console.log('🔍 추출된 가게 ID:', storeId);
+      console.log('🔍 이동 대상 가게 ID:', resolvedStoreId);
 
-      if (storeId) {
-        // 등록된 가게 정보 페이지로 이동
-        console.log('📍 가게 정보 페이지로 이동:', `/stores/${storeId}`);
-        navigate(`/stores/${storeId}`);
+      if (resolvedStoreId) {
+        // 해당 가게 정보 페이지로 이동
+        console.log('📍 가게 정보 페이지로 이동:', `/stores/${resolvedStoreId}`);
+        navigate(`/stores/${resolvedStoreId}`);
       } else {
         // 가게 ID를 찾을 수 없는 경우 홈으로 이동
         console.log('⚠️ 가게 ID를 찾을 수 없어 홈으로 이동');
-        alert('가게가 성공적으로 제보되었습니다!');
+        alert(
+          mode === 'edit' ? '가게 정보가 수정되었습니다!' : '가게가 성공적으로 제보되었습니다!',
+        );
         navigate('/');
       }
     } catch (error) {
@@ -94,7 +169,11 @@ const ReportForm = () => {
         status: error.status,
         response: error.response,
       });
-      alert('가게 제보에 실패했습니다. 다시 시도해주세요.');
+      alert(
+        mode === 'edit'
+          ? '가게 정보 수정에 실패했습니다.'
+          : '가게 제보에 실패했습니다. 다시 시도해주세요.',
+      );
     }
   };
 
@@ -128,6 +207,28 @@ const ReportForm = () => {
     return iconMap[storeType] || '잡화';
   };
 
+  // 유틸: 내부 숫자 시각용 포맷 → "HHMM" 혹은 "오전/오후" 단순화가 되어있어 그대로 둠
+  function toTimeString(n) {
+    if (typeof n !== 'number') return String(n ?? '');
+    const h = Math.floor(n / 100);
+    const m = String(n % 100).padStart(2, '0');
+    return `${String(h).padStart(2, '0')}:${m}`;
+  }
+
+  function reverseTypeMap(typeName) {
+    const map = {
+      '과일·야채': 'produce',
+      수산: 'seafood',
+      식당: 'restaurant',
+      '빵·떡': 'bakery',
+      잡화: 'misc',
+      길거리음식: 'street',
+      축산: 'meat',
+      의류: 'clothing',
+    };
+    return map[typeName];
+  }
+
   const storeTypes = [
     { id: 'produce', label: '과일·야채', icon: produceIcon },
     { id: 'seafood', label: '수산', icon: seafoodIcon },
@@ -139,7 +240,7 @@ const ReportForm = () => {
     { id: 'clothing', label: '의류', icon: clothingIcon },
   ];
 
-  if (!selectedLocation) {
+  if (!effectiveLocation) {
     return (
       <div className="z-[9999] flex items-center justify-center">
         <div className="text-center">
@@ -181,11 +282,11 @@ const ReportForm = () => {
           {/* 지도 */}
           <div className="px-4 mb-8">
             <div className="w-full h-[200px] rounded-[1rem] overflow-hidden">
-              {selectedLocation && selectedLocation.lat && selectedLocation.lng ? (
+              {effectiveLocation && effectiveLocation.lat && effectiveLocation.lng ? (
                 <MapBox
                   title=""
-                  lat={selectedLocation.lat}
-                  lng={selectedLocation.lng}
+                  lat={effectiveLocation.lat}
+                  lng={effectiveLocation.lng}
                   className="h-[200px]"
                 />
               ) : (
@@ -203,7 +304,7 @@ const ReportForm = () => {
                 className="text-[1.2rem] font-normal text-[#969696]"
                 style={{ fontFamily: 'Pretendard Variable' }}
               >
-                {address || '주소를 가져올 수 없습니다'}
+                {displayAddress || '주소를 가져올 수 없습니다'}
               </p>
             </div>
           </div>
@@ -313,15 +414,27 @@ const ReportForm = () => {
 
         <button
           onClick={handleSubmit}
-          disabled={!storeName.trim() || !storeType || reportStoreMutation.isPending}
+          disabled={
+            !storeName.trim() ||
+            !storeType ||
+            reportStoreMutation.isPending ||
+            updateStoreMutation.isPending
+          }
           className={`w-full h-[4.4rem] pb-[7.2rem] pt-[2.3rem] text-[1.4rem] font-semibold transition-all ${
-            storeName.trim() && storeType && !reportStoreMutation.isPending
+            storeName.trim() &&
+            storeType &&
+            !reportStoreMutation.isPending &&
+            !updateStoreMutation.isPending
               ? 'bg-[#FF9C1F] text-[#FEFEFE] hover:bg-[#FF8A00] active:scale-[0.98]'
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
           style={{ fontFamily: 'Pretendard Variable' }}
         >
-          {reportStoreMutation.isPending ? '제출 중...' : '가게 등록하기'}
+          {reportStoreMutation.isPending || updateStoreMutation.isPending
+            ? '제출 중...'
+            : mode === 'edit'
+              ? '수정 완료'
+              : '가게 등록하기'}
         </button>
       </div>
     </div>
