@@ -59,8 +59,43 @@ const Ai = () => {
     staleTime: 5 * 60 * 1000, // 5분
   });
 
+  // 업종별 키워드 API 호출
+  const {
+    data: keywordData,
+    isLoading: keywordLoading,
+    error: keywordError,
+  } = useQuery({
+    queryKey: ['aiTypeKeywords', selectedCategory],
+    queryFn: async () => {
+      if (!selectedCategory) return null;
+
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+      const categoryLabel =
+        categories.find((cat) => cat.id === selectedCategory)?.label || selectedCategory;
+      const apiUrl = `${baseUrl}/api/ai/type?keyword=${encodeURIComponent(categoryLabel)}`;
+
+      console.log('🔍 키워드 API 호출 시작:', apiUrl);
+      console.log('🏷️ 선택된 업종:', categoryLabel);
+
+      const response = await fetch(apiUrl);
+      console.log('📡 키워드 API 응답 상태:', response.status, response.statusText);
+
+      if (!response.ok) {
+        throw new Error('업종별 키워드 정보를 가져오는데 실패했습니다.');
+      }
+
+      const data = await response.json();
+      console.log('📊 키워드 API 응답 데이터:', data);
+      return data;
+    },
+    enabled: !!selectedCategory,
+    staleTime: 5 * 60 * 1000, // 5분
+  });
+
   console.log('🔄 API 쿼리 상태:', { isLoading, error });
   console.log('📋 nearestMarketData:', nearestMarketData);
+  console.log('🔑 키워드 API 상태:', { keywordLoading, keywordError });
+  console.log('📋 keywordData:', keywordData);
 
   const nearestMarket = nearestMarketData?.data;
   console.log('🏪 가장 가까운 시장 정보:', nearestMarket);
@@ -69,7 +104,7 @@ const Ai = () => {
     { id: 'misc', label: '잡화', icon: miscIcon },
     { id: 'meat', label: '축산', icon: meatIcon },
     { id: 'street', label: '길거리음식', icon: streetIcon },
-    { id: 'bakery', label: '빵/떡', icon: bakeryIcon },
+    { id: 'bakery', label: '빵·떡', icon: bakeryIcon },
     { id: 'produce', label: '과일·야채', icon: produceIcon },
     { id: 'seafood', label: '수산', icon: seafoodIcon },
     { id: 'restaurant', label: '식당', icon: restaurantIcon },
@@ -168,6 +203,18 @@ const Ai = () => {
     },
   };
 
+  // API 응답 데이터 또는 mockData 사용
+  const getSelectedCategoryData = () => {
+    if (selectedCategory && keywordData?.data) {
+      return keywordData.data;
+    }
+    // API 데이터가 없을 때만 mockData 사용 (개발용)
+    if (selectedCategory === 'produce') {
+      return mockData.data;
+    }
+    return null;
+  };
+
   const handleCategorySelect = (categoryId) => {
     setSelectedCategory(categoryId);
     setSelectedConditions([]); // 카테고리 변경 시 선택된 조건 초기화
@@ -219,13 +266,16 @@ const Ai = () => {
   const getSelectedConditionLabels = (conditionCodes) => {
     // 선택된 조건 코드를 라벨로 변환
     const allKeywords = [];
-    mockData.data.groups.forEach((group) => {
-      group.keywords.forEach((keyword) => {
-        if (conditionCodes.includes(keyword.code)) {
-          allKeywords.push(keyword.display);
-        }
+    const categoryData = getSelectedCategoryData();
+    if (categoryData?.groups) {
+      categoryData.groups.forEach((group) => {
+        group.keywords.forEach((keyword) => {
+          if (conditionCodes.includes(keyword.code)) {
+            allKeywords.push(keyword.display);
+          }
+        });
       });
-    });
+    }
     return allKeywords;
   };
 
@@ -236,38 +286,49 @@ const Ai = () => {
     }
 
     const requestBody = {
-      market_id: 1,
+      market_id: nearestMarket?.market_id || 1,
       sets: storeSets,
     };
 
     console.log('코스 추천 요청:', requestBody);
 
     try {
-      // 여기에 실제 API 호출 로직 추가
-      // const response = await fetch('/api/ai/recommend', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(requestBody)
-      // })
+      // AI 코스 추천 API 호출
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+      const apiUrl = `${baseUrl}/api/ai/courses?memberId=1`;
+
+      console.log('🚀 AI 코스 추천 API 호출 시작:', apiUrl);
+      console.log('📤 요청 데이터:', requestBody);
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log('📡 AI 코스 추천 API 응답 상태:', response.status, response.statusText);
+
+      if (!response.ok) {
+        throw new Error('AI 코스 추천 요청에 실패했습니다.');
+      }
+
+      const data = await response.json();
+      console.log('📊 AI 코스 추천 API 응답 데이터:', data);
 
       // 성공 시 AiResult 페이지로 이동 (팝업 느낌으로)
       navigate('/ai/result', {
         state: {
           requestData: requestBody,
+          responseData: data,
           showAsPopup: true,
         },
       });
     } catch (error) {
-      console.error('코스 추천 요청 실패:', error);
-      alert('코스 추천 요청에 실패했습니다.');
+      console.error('AI 코스 추천 요청 실패:', error);
+      alert('AI 코스 추천 요청에 실패했습니다.');
     }
-  };
-
-  const getSelectedCategoryData = () => {
-    if (selectedCategory === 'produce') {
-      return mockData.data;
-    }
-    return null;
   };
 
   const categoryData = getSelectedCategoryData();
@@ -315,16 +376,35 @@ const Ai = () => {
               </div>
             </div>
 
-            {/* Store Conditions - 카테고리 선택 시에만 표시 */}
-            {categoryData && (
-              <div className="space-y-4">
-                <h2 className="text-black font-semibold text-lg mt-[3rem] px-[3rem]">
-                  마음에 드는 가게 조건을 골라주세요
-                </h2>
-                <p className="text-black">
-                  최대 5개 선택할 수 있어요! ({selectedConditions.length}/5)
-                </p>
+            {/* Store Conditions - 항상 표시 */}
+            <div className="space-y-4">
+              <h2 className="text-black font-semibold text-lg mt-[3rem] px-[3rem]">
+                마음에 드는 가게 조건을 골라주세요
+              </h2>
+              <p className="text-black px-[3rem]">
+                업종을 선택하면 해당 업종의 키워드가 표시됩니다. 최대 5개 선택할 수 있어요! (
+                {selectedConditions.length}/5)
+              </p>
 
+              {!selectedCategory && (
+                <div className="text-center py-8 px-[3rem]">
+                  <p className="text-gray-600">먼저 위에서 업종을 선택해주세요</p>
+                </div>
+              )}
+
+              {selectedCategory && keywordLoading && (
+                <div className="text-center py-4">
+                  <p className="text-gray-600">키워드를 불러오는 중...</p>
+                </div>
+              )}
+
+              {selectedCategory && keywordError && (
+                <div className="text-center py-4">
+                  <p className="text-red-600">키워드 로딩에 실패했습니다.</p>
+                </div>
+              )}
+
+              {selectedCategory && !keywordLoading && !keywordError && categoryData?.groups && (
                 <div className="flex gap-4 overflow-x-auto pb-2 w-full pl-[3rem]">
                   {categoryData.groups.map((group) => (
                     <div key={group.vibe_type_id} className="space-y-2 flex-shrink-0 min-w-fit">
@@ -355,37 +435,35 @@ const Ai = () => {
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
-            {/* Footer Actions */}
-            {categoryData && (
-              <div className="space-y-4 pt-4">
-                <div className="space-y-3">
-                  <p className="ml-auto mt-[7.1rem] text-black text-sm text-right px-[3rem]">
-                    최대 4개 선택할 수 있어요! {storeSets.length}/4
-                  </p>
+            {/* Footer Actions - 항상 표시 */}
+            <div className="space-y-4 pt-4">
+              <div className="space-y-3">
+                <p className="ml-auto mt-[7.1rem] text-black text-sm text-right px-[3rem]">
+                  최대 4개 선택할 수 있어요! {storeSets.length}/4
+                </p>
 
-                  {canAddMore && (
-                    <button
-                      onClick={handleAddStore}
-                      disabled={!selectedCategory || selectedConditions.length === 0}
-                      className="ml-auto mx-[3rem] flex justify-center items-center flex-shrink-0 rounded-[2rem] border border-[#FF9C1F] bg-[#FEFEFE] w-[12rem] h-[3.7rem] p-[1rem_2.7rem_1rem_2.8rem] text-orange-600 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      + 가게 추가
-                    </button>
-                  )}
-
+                {canAddMore && (
                   <button
-                    onClick={handleSubmitRecommendation}
-                    disabled={storeSets.length === 0}
-                    className="mx-auto mt-[4.8rem] flex justify-center items-center flex-shrink-0 rounded-[1rem] bg-[#FF9C1F] w-[30rem] h-[4.8rem] text-white font-semibold text-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={handleAddStore}
+                    disabled={!selectedCategory || selectedConditions.length === 0}
+                    className="ml-auto mx-[3rem] flex justify-center items-center flex-shrink-0 rounded-[2rem] border border-[#FF9C1F] bg-[#FEFEFE] w-[12rem] h-[3.7rem] p-[1rem_2.7rem_1rem_2.8rem] text-orange-600 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    코스 추천받기
+                    + 가게 추가
                   </button>
-                </div>
+                )}
+
+                <button
+                  onClick={handleSubmitRecommendation}
+                  disabled={storeSets.length === 0}
+                  className="mx-auto mt-[4.8rem] flex justify-center items-center flex-shrink-0 rounded-[1rem] bg-[#FF9C1F] w-[30rem] h-[4.8rem] text-white font-semibold text-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  코스 추천받기
+                </button>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>

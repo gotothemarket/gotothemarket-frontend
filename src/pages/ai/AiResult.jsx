@@ -13,151 +13,190 @@ const AiResult = () => {
   const location = useLocation()
   const navigate = useNavigate()
   const [isVisible, setIsVisible] = useState(false)
-  const { requestData, showAsPopup } = location.state || {}
+  const { requestData, responseData, showAsPopup } = location.state || {};
 
-  // 코스 추천 결과 데이터 (목데이터)
-  const courseData = {
-    marketName: "남성사계시장",
-    course: [
-      {
-        id: 1,
-        storeName: "싱싱과일나라",
-        category: "과일·야채",
-        keyword: "#저렴한",
-        icon: produceIcon
-      },
-      {
-        id: 2,
-        storeName: "금성수산",
-        category: "수산",
-        keyword: "#깔끔한",
-        icon: seafoodIcon
-      },
-      {
-        id: 3,
-        storeName: "장터한우촌",
-        category: "축산",
-        keyword: "#저렴한",
-        icon: meatIcon
-      },
-      {
-        id: 4,
-        storeName: "황제소고기국밥",
-        category: "식당",
-        keyword: "#혼밥하기좋은",
-        icon: restaurantIcon
+  // API 응답 데이터에서 코스 정보 추출
+  const courseData = responseData?.data
+    ? {
+        marketName: 'AI 추천 코스', // 실제로는 nearestMarket에서 가져온 시장명을 사용할 수 있음
+        course: responseData.data.courses.map((item, index) => ({
+          id: item.order,
+          storeId: item.store_id,
+          storeName: item.store_name,
+          category: getCategoryName(item.store_type),
+          keywords: item.keywords,
+          icon: getCategoryIcon(item.store_type),
+        })),
       }
-    ]
-  }
+    : null;
+
+  // store_type을 카테고리 이름으로 변환
+  const getCategoryName = (storeType) => {
+    const categoryMap = {
+      1: '과일·야채',
+      2: '수산',
+      3: '식당',
+      4: '의류',
+      5: '잡화',
+      6: '축산',
+      7: '길거리음식',
+      8: '빵/떡',
+    };
+    return categoryMap[storeType] || '기타';
+  };
+
+  // store_type을 카테고리 아이콘으로 변환
+  const getCategoryIcon = (storeType) => {
+    const iconMap = {
+      1: produceIcon,
+      2: seafoodIcon,
+      3: restaurantIcon,
+      4: restaurantIcon, // 의류 아이콘이 없어서 임시로 요리 아이콘 사용
+      5: produceIcon, // 잡화 아이콘이 없어서 임시로 과일야채 아이콘 사용
+      6: meatIcon,
+      7: restaurantIcon, // 길거리음식 아이콘이 없어서 임시로 요리 아이콘 사용
+      8: produceIcon, // 빵떡 아이콘이 없어서 임시로 과일야채 아이콘 사용
+    };
+    return iconMap[storeType] || produceIcon;
+  };
 
   useEffect(() => {
     // 팝업 느낌을 위한 애니메이션
     if (showAsPopup) {
-      setIsVisible(true)
+      setIsVisible(true);
     }
-  }, [showAsPopup])
+  }, [showAsPopup]);
 
   const handleClose = () => {
     if (showAsPopup) {
-      setIsVisible(false)
+      setIsVisible(false);
       // 애니메이션 완료 후 이전 페이지로 이동
       setTimeout(() => {
-        navigate(-1)
-      }, 300)
+        navigate(-1);
+      }, 300);
     } else {
-      navigate(-1)
+      navigate(-1);
     }
-  }
+  };
 
   if (showAsPopup) {
     return (
-      <div className={`min-h-screen py-[6rem] flex items-center justify-center transition-all duration-300 ${
-        isVisible ? 'opacity-100' : 'opacity-0'
-      }`} style={{
-        background: 'linear-gradient(to bottom, #FF9C1F 0%, #F8FA90 50%, #FFF8C8 100%)'
-      }}>
-        <div 
-          className={` transition-all duration-300 ${
-            isVisible ? 'bg-opacity-50' : 'bg-opacity-0'
-          }`} 
+      <div
+        className={`min-h-screen py-[6rem] flex items-center justify-center transition-all duration-300 ${
+          isVisible ? 'opacity-100' : 'opacity-0'
+        }`}
+        style={{
+          background: 'linear-gradient(to bottom, #FF9C1F 0%, #F8FA90 50%, #FFF8C8 100%)',
+        }}
+      >
+        <div
+          className={` transition-all duration-300 ${isVisible ? 'bg-opacity-50' : 'bg-opacity-0'}`}
           onClick={handleClose}
         ></div>
-        <div className={`relative w-full max-w-4xl mx-4 transform transition-all duration-300 ${
-          isVisible ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'
-        }`}>
-          <div className='w-full'>
-            <div className='relative'>
+        <div
+          className={`relative w-full max-w-4xl mx-4 transform transition-all duration-300 ${
+            isVisible ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'
+          }`}
+        >
+          <div className="w-full">
+            <div className="relative">
               {/* 닫기 버튼 */}
-              <button 
+              <button
                 onClick={handleClose}
-                className='absolute top-4 right-4 z-10 w-[1.6rem] h-[1.6rem] flex items-center justify-center cursor-pointer'
+                className="absolute top-4 right-4 z-10 w-[1.6rem] h-[1.6rem] flex items-center justify-center cursor-pointer"
               >
                 <img src={closeIcon} alt="닫기" className="w-[1.6rem] h-[1.6rem]" />
               </button>
-              
+
               {/* 헤더 */}
-              <div className=' p-6 text-center'>
-                <p className='text-sm text-gray-600 mb-2'>{courseData.marketName}</p>
-                <h1 className='text-2xl font-bold text-black'>코스 추천 완료</h1>
+              <div className=" p-6 text-center">
+                <p className="text-sm text-gray-600 mb-2">
+                  {courseData?.marketName || 'AI 추천 코스'}
+                </p>
+                <h1 className="text-2xl font-bold text-black">코스 추천 완료</h1>
               </div>
-              
-              {/* 지도 섹션 */}
-              <div className='px-[1rem]'>
-                <MapBox 
-                  title="" 
-                  lat={37.5665} 
-                  lng={126.9780}
-                  className="h-[18.5rem] aspect-[317.01/185.00]"
-                  sectionClassName="pb-[3rem] pt-[-1rem]"
-                />
-                
-                {/* 코스 리스트 */}
-                <div className='space-y-[2rem] w-[80%] mx-auto'>
-                  {courseData.course.map((item, index) => (
-                    <div key={item.id} className='flex justify-between items-center space-x-4 relative'>
-                      {/* 왼쪽 번호 원 */}
-                      <div className='w-[2.4rem] h-[2.4rem] bg-[#FF9C1F] rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0'>
-                        {item.id}
-                      </div>
-                      
-                      {/* 점선 연결선 */}
-                      {index < courseData.course.length - 1 && (
-                        <div className='absolute left-[1rem] top-20 w-0.5 h-30 border-l-3 border-dashed border-[#FF9C1F]'></div>
-                      )}
-                      
-                      {/* 아이콘과 카테고리 */}
-                      <div className='flex flex-col items-center'>
-                          
-                            <img src={item.icon} alt={item.category} className="w-[6rem] h-[6rem] object-fit" />
-                         
-                         
-                          <div className='bg-[#FEFEFE] px-3 py-1 rounded-[2rem] text-[1rem] text-[#FF9C1F] font-medium'>
-                            {item.category}
-                          </div>
-                      </div>
-                      
-                      {/* 가게 정보 */}
-                      <div className='flex-1'>
-                        <h3 className='text-lg font-semibold text-black mb-1'>{item.storeName}</h3>
-                        <p className='text-sm text-gray-600'>{item.keyword}</p>
-                      </div>
-                      
-                      {/* 오른쪽 화살표 */}
-                      <div 
-                        className='flex items-center text-gray-400 cursor-pointer hover:scale-110 transition-transform'
-                        onClick={() => navigate(`/stores/${item.id}`)}
-                      >
-                        <img src={arrowOrangeIcon} alt="화살표" className="w-5 h-5" />
-                      </div>
-                    </div>
-                  ))}
+
+              {!courseData ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-600">코스 추천 데이터를 불러오는 중...</p>
                 </div>
-              </div>
+              ) : (
+                <>
+                  {/* 지도 섹션 */}
+                  <div className="px-[1rem]">
+                    <MapBox
+                      title=""
+                      lat={37.5665}
+                      lng={126.978}
+                      className="h-[18.5rem] aspect-[317.01/185.00]"
+                      sectionClassName="pb-[3rem] pt-[-1rem]"
+                    />
+
+                    {/* 코스 리스트 */}
+                    <div className="space-y-[2rem] w-[80%] mx-auto">
+                      {courseData.course.map((item, index) => (
+                        <div
+                          key={item.id}
+                          className="flex justify-between items-center space-x-4 relative"
+                        >
+                          {/* 왼쪽 번호 원 */}
+                          <div className="w-[2.4rem] h-[2.4rem] bg-[#FF9C1F] rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
+                            {item.id}
+                          </div>
+
+                          {/* 점선 연결선 */}
+                          {index < courseData.course.length - 1 && (
+                            <div className="absolute left-[1rem] top-20 w-0.5 h-30 border-l-3 border-dashed border-[#FF9C1F]"></div>
+                          )}
+
+                          {/* 아이콘과 카테고리 */}
+                          <div className="flex flex-col items-center">
+                            <img
+                              src={item.icon}
+                              alt={item.category}
+                              className="w-[6rem] h-[6rem] object-fit"
+                            />
+
+                            <div className="bg-[#FEFEFE] px-3 py-1 rounded-[2rem] text-[1rem] text-[#FF9C1F] font-medium">
+                              {item.category}
+                            </div>
+                          </div>
+
+                          {/* 가게 정보 */}
+                          <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-black mb-1">
+                              {item.storeName}
+                            </h3>
+                            <div className="flex flex-wrap gap-1">
+                              {item.keywords.map((keyword, keywordIndex) => (
+                                <span
+                                  key={keywordIndex}
+                                  className="text-xs bg-[#FFF8C8] text-[#FF9C1F] px-2 py-1 rounded-full"
+                                >
+                                  {keyword}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* 오른쪽 화살표 */}
+                          <div
+                            className="flex items-center text-gray-400 cursor-pointer hover:scale-110 transition-transform"
+                            onClick={() => navigate(`/stores/${item.storeId}`)}
+                          >
+                            <img src={arrowOrangeIcon} alt="화살표" className="w-5 h-5" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   // 일반 페이지로 표시 (showAsPopup이 false인 경우)
