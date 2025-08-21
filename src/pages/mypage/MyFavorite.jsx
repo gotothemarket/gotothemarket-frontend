@@ -1,29 +1,34 @@
 import Header from '../../components/Header';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import favoritesData from '../../mocks/favorites_mocks.json';
+import { useQuery } from '@tanstack/react-query';
+import { favoritesOptions } from '../../apis/mypage/api';
 import closeIcon from '../../assets/close_icon_white.svg';
 
-const FavoriteCard = ({ favorite, showDelete, onDelete }) => (
-  <div className="flex items-center gap-[1.2rem] p-[0.8rem] bg-[#181818] rounded-[2rem]">
+const FavoriteCard = ({ favorite, showDelete, onDelete, onClick }) => (
+  <div
+    className="flex items-center gap-[1.2rem] p-[0.8rem] bg-[#181818] rounded-[2rem] cursor-pointer hover:bg-[#2A2A2A] transition-colors"
+    onClick={onClick}
+  >
     <div className="w-[6rem] h-[6rem] flex items-center justify-center">
       <img
-        src={favorite.store_icon}
-        alt={favorite.store_name}
+        src={favorite.storeIcon}
+        alt={favorite.storeName}
         className="w-[4rem] h-[4rem] object-contain"
       />
     </div>
     <div className="flex-1">
-      <div className="text-[#787878] text-[1.2rem]">
-        {favorite.market_name} #{favorite.category}
-      </div>
+      <div className="text-[#787878] text-[1.2rem]">{favorite.marketName}</div>
       <div className="text-white text-body-secondary font-semibold mt-[0.4rem]">
-        {favorite.store_name}
+        {favorite.storeName}
       </div>
     </div>
     {showDelete && (
       <button
-        onClick={() => onDelete(favorite)}
+        onClick={(e) => {
+          e.stopPropagation(); // 부모 클릭 이벤트 방지
+          onDelete(favorite);
+        }}
         className="w-[2rem] h-[2rem] rounded-full cursor-pointer bg-[#FF4444] flex items-center justify-center flex-shrink-0 mr-[2rem]"
       >
         <img src={closeIcon} alt="삭제" className="w-[0.86rem] h-[0.86rem]" />
@@ -35,16 +40,39 @@ const FavoriteCard = ({ favorite, showDelete, onDelete }) => (
 const MyFavorite = () => {
   const navigate = useNavigate();
   const [isDeleteMode, setIsDeleteMode] = useState(false);
-  const [favorites, setFavorites] = useState(favoritesData.data.favorites);
-  const { total } = favoritesData.data;
+
+  // 즐겨찾기 데이터 가져오기
+  const { data: favoritesData, isLoading, error } = useQuery(favoritesOptions());
+
+  const favorites = favoritesData?.data?.favorites || [];
+  const total = favoritesData?.data?.total || 0;
 
   const handleDelete = (favoriteToDelete) => {
-    setFavorites((prev) => prev.filter((fav) => fav !== favoriteToDelete));
+    // TODO: 실제 삭제 API 호출
+    console.log('즐겨찾기 삭제:', favoriteToDelete);
   };
 
   const toggleDeleteMode = () => {
     setIsDeleteMode(!isDeleteMode);
   };
+
+  // 로딩 상태 처리
+  if (isLoading) {
+    return (
+      <div className="bg-black min-h-screen pb-[8.3rem] flex items-center justify-center">
+        <div className="text-white text-[1.8rem]">로딩 중...</div>
+      </div>
+    );
+  }
+
+  // 에러 상태 처리
+  if (error) {
+    return (
+      <div className="bg-black min-h-screen pb-[8.3rem] flex items-center justify-center">
+        <div className="text-white text-[1.8rem]">데이터를 불러오는데 실패했습니다.</div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-black min-h-screen pb-[8.3rem]">
@@ -52,7 +80,7 @@ const MyFavorite = () => {
 
       {/* Main Title */}
       <div className="px-[4rem] mt-[3.5rem]">
-        <div className="text-white text-heading-medium font-semibold">고구마햇반님의 즐겨찾기</div>
+        <div className="text-white text-heading-medium font-semibold">즐겨찾기한 가게</div>
       </div>
 
       {/* Section Header */}
@@ -72,14 +100,21 @@ const MyFavorite = () => {
 
       {/* Favorites List */}
       <div className="px-[3.4rem] mt-[1.2rem] space-y-[1.5rem]">
-        {favorites.map((favorite, idx) => (
-          <FavoriteCard
-            key={`favorite-${idx}`}
-            favorite={favorite}
-            showDelete={isDeleteMode}
-            onDelete={handleDelete}
-          />
-        ))}
+        {favorites.length > 0 ? (
+          favorites.map((favorite, idx) => (
+            <FavoriteCard
+              key={`favorite-${idx}`}
+              favorite={favorite}
+              showDelete={isDeleteMode}
+              onDelete={handleDelete}
+              onClick={() => navigate(`/store/${favorite.storeId}`)}
+            />
+          ))
+        ) : (
+          <div className="text-center text-[#787878] text-[1.4rem] py-[3rem]">
+            즐겨찾기한 가게가 없습니다.
+          </div>
+        )}
       </div>
     </div>
   );

@@ -14,7 +14,7 @@ export const mypageAllOptions = () =>
 export const favoritesOptions = (filters = {}) =>
   createQueryOptions({
     queryKey: k.mypage.favorites(filters),
-    queryFn: ({ signal }) => apiGet('/api/mypage/favorite', { signal, params: filters }),
+    queryFn: ({ signal }) => apiGet('/api/mypage/favorite?memberId=1', { signal, params: filters }),
   });
 
 // 즐겨찾기 삭제
@@ -28,7 +28,7 @@ export const deleteFavoriteOptions = (favoriteId) =>
 export const myReviewsOptions = (filters = {}) =>
   createQueryOptions({
     queryKey: k.mypage.reviews(filters),
-    queryFn: ({ signal }) => apiGet('/api/mypage/review', { signal, params: filters }),
+    queryFn: ({ signal }) => apiGet('/api/mypage/review?memberId=1', { signal, params: filters }),
   });
 
 export const myBadgesOptions = () =>

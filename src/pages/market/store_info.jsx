@@ -218,7 +218,7 @@ export default function StoreInfo() {
               average={review_summary.average_rating || 0}
               count={review_summary.review_count || 0}
             />
-            {Array.isArray(reviews) && reviews.length > 0 && <ReviewList reviews={reviews} />}
+            <ReviewList reviews={reviews || []} />
           </section>
         )}
       </div>

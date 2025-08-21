@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import Header from '../../components/Header';
-import { mypageAllOptions } from '../../apis/mypage/api';
+import { mypageAllOptions, favoritesOptions, myReviewsOptions } from '../../apis/mypage/api';
 import favoriteIcon from '../../assets/favorite_icon.svg';
 import reviewIcon from '../../assets/review_icon.svg';
 
@@ -25,10 +25,18 @@ const Mypage = () => {
   // API를 통해 마이페이지 데이터 가져오기
   const { data: mypageData, isLoading, error } = useQuery(mypageAllOptions());
 
+  // 즐겨찾기 데이터 가져오기
+  const { data: favoritesData, isLoading: favoritesLoading } = useQuery(favoritesOptions());
+
+  // 리뷰 데이터 가져오기
+  const { data: reviewsData, isLoading: reviewsLoading } = useQuery(myReviewsOptions());
+
   // 디버깅을 위한 콘솔 로그
   console.log('API 응답 전체 데이터:', mypageData);
   console.log('API 응답 data:', mypageData?.data);
   console.log('API 응답 profile:', mypageData?.data?.profile);
+  console.log('즐겨찾기 데이터:', favoritesData);
+  console.log('리뷰 데이터:', reviewsData);
   console.log('로딩 상태:', isLoading);
   console.log('에러 상태:', error);
 
@@ -62,6 +70,8 @@ const Mypage = () => {
   }
 
   const { profile } = mypageData.data;
+  const favorites = favoritesData?.data?.favorites || [];
+  const reviews = reviewsData?.data?.reviews || [];
 
   return (
     <div className="bg-black min-h-screen pb-[8.3rem]">
@@ -103,29 +113,35 @@ const Mypage = () => {
             onClick={() => navigate('/mypage/favorite')}
             className="text-primary-900 text-body-large cursor-pointer hover:opacity-80"
           >
-            {profile.favorites?.length || 0}개{' '}
-            <span className="text-secondary-600 mr-[1.5rem]">〉</span>
+            {favorites.length}개 <span className="text-secondary-600 mr-[1.5rem]">〉</span>
           </button>
         </div>
         <div className="mt-[1.2rem] pl-[4rem] pr-[1rem] flex gap-[1.2rem] overflow-x-auto">
-          {profile.favorites?.map((fav, idx) => (
-            <div
-              key={`fav-${idx}`}
-              className="flex-shrink-0 flex flex-col justify-center items-center w-[12.8rem] h-[13rem] bg-[#181818] rounded-[1.2rem] p-[1rem] text-body-medium text-white"
-            >
-              <div className="text-[1.4rem] text-[#787878]">{fav.market_name}</div>
-              <div className="w-full flex items-center justify-center overflow-hidden">
-                <img
-                  src={fav.store_icon}
-                  alt="store icon"
-                  className="w-[5rem] h-[5rem] object-cover"
-                />
+          {favoritesLoading ? (
+            <div className="text-[#787878] text-[1.4rem]">즐겨찾기 로딩 중...</div>
+          ) : favorites.length > 0 ? (
+            favorites.map((fav, idx) => (
+              <div
+                key={`fav-${idx}`}
+                className="flex-shrink-0 flex flex-col justify-center items-center w-[12.8rem] h-[13rem] bg-[#181818] rounded-[1.2rem] p-[1rem] text-body-medium text-white cursor-pointer hover:bg-[#2A2A2A] transition-colors"
+                onClick={() => navigate(`/stores/${fav.storeId || idx}`)}
+              >
+                <div className="text-[1.4rem] text-[#787878]">{fav.marketName}</div>
+                <div className="w-full flex items-center justify-center overflow-hidden">
+                  <img
+                    src={fav.storeIcon}
+                    alt="store icon"
+                    className="w-[5rem] h-[5rem] object-cover"
+                  />
+                </div>
+                <div className="mt-[0.4rem] w-[10.8rem] text-center bg-[#2E2E2E] py-[0.5rem] text-[1.6rem] text-body-medium rounded-[3rem]">
+                  {fav.storeName}
+                </div>
               </div>
-              <div className="mt-[0.4rem] w-[10.8rem] text-center bg-[#2E2E2E] py-[0.5rem] text-[1.6rem] text-body-medium rounded-[3rem]">
-                {fav.store_name}
-              </div>
-            </div>
-          )) || <div className="text-[#787878] text-[1.4rem]">즐겨찾기한 가게가 없습니다.</div>}
+            ))
+          ) : (
+            <div className="text-[#787878] text-[1.4rem]">즐겨찾기한 가게가 없습니다.</div>
+          )}
         </div>
       </section>
 
@@ -143,24 +159,31 @@ const Mypage = () => {
             onClick={() => navigate('/mypage/review')}
             className="text-primary-900 text-body-large cursor-pointer hover:opacity-80 mr-[1.5rem]"
           >
-            {profile.reviews?.length || 0}개 <span className="text-secondary-600">〉</span>
+            {reviews.length}개 <span className="text-secondary-600">〉</span>
           </button>
         </div>
         <div className="mt-[1.2rem] pl-[4rem] pr-[1rem] flex gap-[1.2rem] overflow-x-auto">
-          {profile.reviews?.map((rv, idx) => (
-            <div
-              key={`rv-${idx}`}
-              className="flex-shrink-0 flex flex-col justify-center items-center w-[12.8rem] h-[13rem] bg-[#181818] rounded-[1.2rem] p-[1rem] text-body-medium text-white"
-            >
-              <div className="text-[1.4rem] text-[#787878]">{rv.market_name}</div>
-              <div className="w-full text-center mt-[0.6rem] text-white text-[1.2rem] font-normal leading-[1.4rem] h-[5rem] overflow-hidden px-[0.4rem]">
-                {rv.content.length > 27 ? `${rv.content.slice(0, 27)}...` : rv.content}
+          {reviewsLoading ? (
+            <div className="text-[#787878] text-[1.4rem]">리뷰 로딩 중...</div>
+          ) : reviews.length > 0 ? (
+            reviews.map((rv, idx) => (
+              <div
+                key={`rv-${idx}`}
+                className="flex-shrink-0 flex flex-col justify-center items-center w-[12.8rem] h-[13rem] bg-[#181818] rounded-[1.2rem] p-[1rem] text-body-medium text-white cursor-pointer hover:bg-[#2A2A2A] transition-colors"
+                onClick={() => navigate(`/stores/${rv.storeId || idx}`)}
+              >
+                <div className="text-[1.4rem] text-[#787878]">{rv.market_name}</div>
+                <div className="w-full text-center mt-[0.6rem] text-white text-[1.2rem] font-normal leading-[1.4rem] h-[5rem] overflow-hidden px-[0.4rem]">
+                  {rv.content.length > 27 ? `${rv.content.slice(0, 27)}...` : rv.content}
+                </div>
+                <div className="mt-[0.4rem] w-[10.8rem] text-center bg-[#2E2E2E] py-[0.5rem] text-[1.6rem] text-body-medium rounded-[3rem]">
+                  {rv.store_name}
+                </div>
               </div>
-              <div className="mt-[0.4rem] w-[10.8rem] text-center bg-[#2E2E2E] py-[0.5rem] text-[1.6rem] text-body-medium rounded-[3rem]">
-                {rv.store_name}
-              </div>
-            </div>
-          )) || <div className="text-[#787878] text-[1.4rem]">작성한 리뷰가 없습니다.</div>}
+            ))
+          ) : (
+            <div className="text-[#787878] text-[1.4rem]">작성한 리뷰가 없습니다.</div>
+          )}
         </div>
       </section>
     </div>
