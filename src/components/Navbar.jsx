@@ -5,10 +5,12 @@ import writeIcon from '../assets/write_active.svg';
 import writeInactiveIcon from '../assets/write_default.svg';
 import profileActiveIcon from '../assets/profile_active.svg';
 import profileInactiveIcon from '../assets/profile_default.svg';
+import { useMapContext } from '../contexts/MapContext';
 
 export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { mapState } = useMapContext();
 
   // Navbar 표시 경로: 홈, 마이페이지
   const visiblePaths = ['/', '/mypage'];
@@ -19,29 +21,13 @@ export default function Navbar() {
   const isMypage = location.pathname === '/mypage';
 
   const handleReportClick = () => {
-    // 홈 컴포넌트에서 현재 위치 정보를 가져와서 전달 (리스너 없을 경우 안전하게 이동)
-    let responded = false;
-    const event = new CustomEvent('getCurrentLocation', {
-      detail: {
-        callback: (location) => {
-          responded = true;
-          if (location) {
-            navigate('/report/location', {
-              state: {
-                initialLocation: location,
-                initialAddress: document.querySelector('[data-address]')?.textContent || '',
-              },
-            });
-          } else {
-            navigate('/report/location');
-          }
-        },
+    // MapContext에서 현재 지도 상태를 가져와서 전달
+    navigate('/report/location', {
+      state: {
+        initialLocation: mapState.center,
+        initialAddress: mapState.address,
       },
     });
-    window.dispatchEvent(event);
-    setTimeout(() => {
-      if (!responded) navigate('/report/location');
-    }, 100);
   };
 
   return (

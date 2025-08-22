@@ -162,13 +162,11 @@ function StoreDetail({ payload }) {
 function MarketDetail({ payload }) {
   // API 응답 필드 사용
   const rows = [
-    { label: '주소', value: payload.marketAddress || '정보 없음' },
-    { label: '개업연수', value: payload.openingYears ? `${payload.openingYears}년` : '정보 없음' },
-    { label: '개설주기', value: payload.openingCycle || '정보 없음' },
-    { label: '점포 수', value: `${payload.storeCount ?? 0}개` },
-    { label: '교통', value: payload.transport || '정보 없음' },
-    { label: '주차', value: payload.parking ? '가능' : '불가' },
-    { label: '화장실', value: payload.toilet ? '있음' : '없음' },
+    { label: '점포 수', value: `${s.storeCount ?? 0}개` },
+    { label: '개설주기', value: s.openingCycle || '정보 없음' },
+    { label: '교통', value: s.transport || '정보 없음' },
+    { label: '주차', value: s.parking ? '가능' : '불가' },
+    { label: '화장실', value: s.toilet ? '있음' : '없음' },
   ];
 
   const photos = (payload.marketMainImageUrls || []).map((url, i) => ({
@@ -178,7 +176,13 @@ function MarketDetail({ payload }) {
 
   return (
     <div className="px-2 pb-6">
-      <EntityHeader icon={marketIcon} title={payload.marketName} subtitle={payload.marketAddress} />
+      <EntityHeader
+        icon={marketIcon}
+        title={payload.marketName}
+        subtitle={payload.marketAddress}
+        isMarket={true}
+        openingYears={payload.openingYears}
+      />
 
       <section className="">
         <InfoRows title="시장 정보" rows={rows} />

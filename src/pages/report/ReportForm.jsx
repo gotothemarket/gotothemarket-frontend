@@ -26,10 +26,10 @@ const ReportForm = () => {
   const [storeName, setStoreName] = useState(initial?.storeName || '');
   const [storeType, setStoreType] = useState('');
   const [startTime, setStartTime] = useState(
-    initial?.openingHours ? toTimeString(initial.openingHours) : '오전 9시',
+    initial?.openingHours ? toTimeString(initial.openingHours) : '',
   );
   const [endTime, setEndTime] = useState(
-    initial?.closingHours ? toTimeString(initial.closingHours) : '오후 9시',
+    initial?.closingHours ? toTimeString(initial.closingHours) : '',
   );
   const [contact, setContact] = useState(initial?.phoneNumber || '');
   const [displayAddress, setDisplayAddress] = useState(address || initial?.address || '');
@@ -312,8 +312,15 @@ const ReportForm = () => {
           {/* 가게 이름 */}
           <div className="px-[2.1rem] mb-8">
             <h3
-              className="text-[1.4rem] font-semibold mb-4 text-[#0A0A0A]"
-              style={{ fontFamily: 'Pretendard Variable' }}
+              className="mb-4"
+              style={{
+                color: '#0A0A0A',
+                fontFamily: 'Pretendard Variable',
+                fontSize: '1.6rem',
+                fontStyle: 'normal',
+                fontWeight: 600,
+                lineHeight: 'normal',
+              }}
             >
               가게 이름
             </h3>
@@ -330,8 +337,15 @@ const ReportForm = () => {
           {/* 가게 종류 */}
           <div className="px-[2.1rem] mb-8">
             <h3
-              className="text-[1.4rem] font-semibold mb-4 text-[#0A0A0A]"
-              style={{ fontFamily: 'Pretendard Variable' }}
+              className="mb-4"
+              style={{
+                color: '#0A0A0A',
+                fontFamily: 'Pretendard Variable',
+                fontSize: '1.6rem',
+                fontStyle: 'normal',
+                fontWeight: 600,
+                lineHeight: 'normal',
+              }}
             >
               가게 종류
             </h3>
@@ -353,8 +367,15 @@ const ReportForm = () => {
           {/* 영업시간 (선택) */}
           <div className="px-[2.1rem] mb-8">
             <h3
-              className="text-[1.4rem] font-semibold mb-2 text-[#0A0A0A]"
-              style={{ fontFamily: 'Pretendard Variable' }}
+              className="mb-2"
+              style={{
+                color: '#0A0A0A',
+                fontFamily: 'Pretendard Variable',
+                fontSize: '1.6rem',
+                fontStyle: 'normal',
+                fontWeight: 600,
+                lineHeight: 'normal',
+              }}
             >
               영업시간
               <span className="text-[1.4rem] text-gray-400 font-normal ml-2">(선택)</span>
@@ -364,7 +385,7 @@ const ReportForm = () => {
                 type="text"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                placeholder="오전 9시"
+                placeholder="9:00"
                 className="flex-1 h-[4.4rem] w-[13.7rem] px-4 rounded-[1rem] bg-gray-50 text-[1.4rem] font-normal leading-normal placeholder-gray-400"
                 style={{ fontFamily: 'Pretendard Variable', color: '#969696' }}
               />
@@ -378,7 +399,7 @@ const ReportForm = () => {
                 type="text"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
-                placeholder="오후 9시"
+                placeholder="21:00"
                 className="flex-1 h-[4.4rem] w-[13.7rem] px-4 rounded-[1rem] bg-gray-50 text-[1.4rem] font-normal leading-normal placeholder-gray-400"
                 style={{ fontFamily: 'Pretendard Variable', color: '#969696' }}
               />
@@ -394,8 +415,15 @@ const ReportForm = () => {
           {/* 가게 연락처 (선택) */}
           <div className="px-[2.1rem] mb-8">
             <h3
-              className="text-[1.4rem] font-semibold mb-2 text-[#0A0A0A]"
-              style={{ fontFamily: 'Pretendard Variable' }}
+              className="mb-2"
+              style={{
+                color: '#0A0A0A',
+                fontFamily: 'Pretendard Variable',
+                fontSize: '1.6rem',
+                fontStyle: 'normal',
+                fontWeight: 600,
+                lineHeight: 'normal',
+              }}
             >
               가게 연락처
               <span className="text-[1.4rem] text-gray-400 font-normal ml-2">(선택)</span>
@@ -426,7 +454,7 @@ const ReportForm = () => {
             !reportStoreMutation.isPending &&
             !updateStoreMutation.isPending
               ? 'bg-[#FF9C1F] text-[#FEFEFE] hover:bg-[#FF8A00] active:scale-[0.98]'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-[#D9D9D9] text-white cursor-not-allowed'
           }`}
           style={{ fontFamily: 'Pretendard Variable' }}
         >

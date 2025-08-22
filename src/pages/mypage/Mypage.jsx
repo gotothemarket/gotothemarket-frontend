@@ -186,7 +186,7 @@ const Mypage = () => {
               <div
                 key={`rv-${idx}`}
                 className="flex-shrink-0 flex flex-col justify-center items-center w-[12.8rem] h-[13rem] bg-[#181818] rounded-[1.2rem] p-[1rem] text-body-medium text-white cursor-pointer hover:bg-[#2A2A2A] transition-colors"
-                onClick={() => navigate(`/stores/${rv.storeId || idx}`)}
+                onClick={() => navigate(`/stores/${rv.store_id || idx}`)}
               >
                 <div className="text-[1.4rem] text-[#787878]">{rv.market_name}</div>
                 <div className="w-full text-center mt-[0.6rem] text-white text-[1.2rem] font-normal leading-[1.4rem] h-[5rem] overflow-hidden px-[0.4rem]">

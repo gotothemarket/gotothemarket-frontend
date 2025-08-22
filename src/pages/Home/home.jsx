@@ -11,6 +11,7 @@ import BadgeModal from '../../components/BadgeModal';
 import { firstLaunchOptions } from '../../apis/apis';
 import { homeMapOptions } from '../../apis/home/api';
 import mapData from '../../mocks/map_mocks.json';
+import { useMapContext } from '../../contexts/MapContext';
 
 export const Home = () => {
   const navigate = useNavigate();
@@ -24,6 +25,9 @@ export const Home = () => {
   const [showBadgeModal, setShowBadgeModal] = useState(false); // 뱃지 모달 상태
   const [badgeInfo, setBadgeInfo] = useState(null); // 뱃지 정보 상태
   const KAKAO_KEY = import.meta.env.VITE_KAKAO_MAP_API_KEY;
+
+  // MapContext 사용
+  const { mapState, updateMapCenter, updateMapLevel, updateMapAddress } = useMapContext();
 
   // first-launch API 호출
   const firstLaunchMutation = useMutation(firstLaunchOptions());
@@ -126,6 +130,10 @@ export const Home = () => {
       const address = await getAddressFromCoords(lat, lng);
       setCurrentAddress(address);
       setCurrentLocation({ lat, lng });
+      // MapContext 업데이트 (저장된 주소와 다른 경우에만)
+      if (address !== mapState.address) {
+        updateMapAddress(address);
+      }
     } catch (error) {
       console.error('중앙 주소 업데이트 실패:', error);
     }
@@ -149,39 +157,92 @@ export const Home = () => {
     };
   }, [currentLocation]);
 
+  // 지도가 이미 존재할 때 MapContext 상태 동기화 (한 번만)
+  useEffect(() => {
+    if (
+      mapInstanceRef.current &&
+      mapState.center.lat !== 37.4961 &&
+      !mapInstanceRef.current._stateApplied
+    ) {
+      console.log('🗺️ 기존 지도에 저장된 상태 적용:', mapState);
+      const center = new window.kakao.maps.LatLng(mapState.center.lat, mapState.center.lng);
+      mapInstanceRef.current.setCenter(center);
+      mapInstanceRef.current.setLevel(mapState.level);
+      mapInstanceRef.current._stateApplied = true;
+    }
+  }, [mapState]);
+
   useEffect(() => {
     if (!mapRef.current || !KAKAO_KEY || !homeData) return;
+
+    // 이미 지도가 생성되어 있다면 재생성하지 않음
+    if (mapInstanceRef.current) {
+      console.log('🗺️ 지도가 이미 존재함, 재생성하지 않음');
+      return;
+    }
 
     const newMarkers = [];
 
     loadKakaoMaps(KAKAO_KEY).then(async () => {
-      // 현재 위치 가져오기
-      let initialLat = 37.4961; // 기본값 (서울시청)
-      let initialLng = 126.98231;
-      let initialAddress = '';
+      // MapContext에서 저장된 상태 사용 (초기 로드 시에만)
+      let initialLat = mapState.center.lat;
+      let initialLng = mapState.center.lng;
+      let initialAddress = mapState.address;
 
-      try {
-        if (navigator.geolocation) {
-          const position = await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-              enableHighAccuracy: true,
-              timeout: 10000,
-              maximumAge: 60000,
+      // 저장된 상태가 없거나 기본값인 경우에만 현재 위치 가져오기
+      if ((initialLat === 37.4961 && initialLng === 126.98231) || !initialAddress) {
+        try {
+          if (navigator.geolocation) {
+            const position = await new Promise((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 60000,
+              });
             });
-          });
 
-          initialLat = position.coords.latitude;
-          initialLng = position.coords.longitude;
-        }
-      } catch (error) {}
+            initialLat = position.coords.latitude;
+            initialLng = position.coords.longitude;
+          }
+        } catch (error) {}
+      }
 
       // 지도 생성 (현재 위치 또는 기본 위치)
       const { map } = createMap(mapRef.current, {
         lat: initialLat,
         lng: initialLng,
-        level: 3,
+        level: mapState.level, // 저장된 줌 레벨 사용
       });
+
+      // 확대/축소 범위 설정 (레벨 1-14)
+      map.setMinLevel(1); // 최소 확대 레벨 (가장 자세)
+      map.setMaxLevel(14); // 최대 확대 레벨 (가장 넓음)
+
+      // 확대/축소 기능 강제 활성화
+      map.setZoomable(true);
+
+      // 마우스 휠 이벤트 직접 추가
+      const handleWheel = (e) => {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? 1 : -1;
+        const currentLevel = map.getLevel();
+        const newLevel = Math.max(1, Math.min(14, currentLevel + delta));
+        if (newLevel !== currentLevel) {
+          map.setLevel(newLevel);
+        }
+      };
+
+      mapRef.current.addEventListener('wheel', handleWheel, { passive: false });
+
       mapInstanceRef.current = map; // 지도 객체를 ref에 저장
+
+      // 지도 상태가 저장된 상태라면 플래그 설정
+      if (mapState.center.lat !== 37.4961 || mapState.center.lng !== 126.98231) {
+        map._stateApplied = true;
+      }
+
+      // 정리 함수에서 사용할 수 있도록 handleWheel을 저장
+      mapRef.current._handleWheel = handleWheel;
 
       console.log('🗺️ 지도 생성 완료!');
       console.log('📍 초기 좌표:', { lat: initialLat, lng: initialLng });
@@ -193,19 +254,47 @@ export const Home = () => {
         initialAddress = await getAddressFromCoords(initialLat, initialLng);
         setCurrentAddress(initialAddress);
         setCurrentLocation({ lat: initialLat, lng: initialLng });
+        // MapContext 업데이트 (저장된 주소와 다른 경우에만)
+        if (initialAddress !== mapState.address) {
+          updateMapAddress(initialAddress);
+        }
       } catch (error) {
         setCurrentAddress(mapData.data.road_address); // 기본값으로 fallback
         setCurrentLocation({ lat: initialLat, lng: initialLng });
+        // MapContext 업데이트 (저장된 주소와 다른 경우에만)
+        if (mapData.data.road_address !== mapState.address) {
+          updateMapAddress(mapData.data.road_address);
+        }
       }
 
-      // 지도 이동 이벤트 리스너 추가
-      window.kakao.maps.event.addListener(map, 'dragend', () => {
-        updateCenterAddress(map);
-      });
+      // 지도 이동 이벤트 리스너 추가 (한 번만)
+      if (!map._hasEventListeners) {
+        window.kakao.maps.event.addListener(map, 'dragend', () => {
+          updateCenterAddress(map);
+          // MapContext 업데이트 (실제 변경된 경우에만)
+          const center = map.getCenter();
+          const newLat = center.getLat();
+          const newLng = center.getLng();
 
-      window.kakao.maps.event.addListener(map, 'zoom_changed', () => {
-        updateCenterAddress(map);
-      });
+          if (
+            Math.abs(newLat - mapState.center.lat) > 0.0001 ||
+            Math.abs(newLng - mapState.center.lng) > 0.0001
+          ) {
+            updateMapCenter(newLat, newLng);
+          }
+        });
+
+        window.kakao.maps.event.addListener(map, 'zoom_changed', () => {
+          updateCenterAddress(map);
+          // MapContext 업데이트 (실제 변경된 경우에만)
+          const newLevel = map.getLevel();
+          if (newLevel !== mapState.level) {
+            updateMapLevel(newLevel);
+          }
+        });
+
+        map._hasEventListeners = true;
+      }
 
       // 마커 이미지(기본/선택) 준비
       const STORE_IMG = {
@@ -268,6 +357,12 @@ export const Home = () => {
     return () => {
       newMarkers.forEach((m) => m.marker?.setMap(null));
       setMarkers([]);
+
+      // 마우스 휠 이벤트 리스너 제거
+      if (mapRef.current && mapRef.current._handleWheel) {
+        mapRef.current.removeEventListener('wheel', mapRef.current._handleWheel);
+        delete mapRef.current._handleWheel;
+      }
     };
   }, [KAKAO_KEY, homeData]);
 
@@ -287,11 +382,14 @@ export const Home = () => {
           const latlng = new window.kakao.maps.LatLng(lat, lng);
 
           // 지도 중앙 이동
-          window.kakao.maps.event.trigger(mapInstanceRef.current, 'dragend'); // mapInstanceRef.current 사용
+          mapInstanceRef.current.setCenter(latlng);
 
           try {
             const address = await getAddressFromCoords(lat, lng);
             setCurrentAddress(address);
+            // MapContext 업데이트
+            updateMapCenter(lat, lng);
+            updateMapAddress(address);
           } catch (error) {
             console.error('현재 위치 주소 변환 실패:', error);
           }
@@ -307,12 +405,22 @@ export const Home = () => {
   return (
     <div className="relative w-full h-full overflow-hidden flex flex-col items-center">
       {/* 주소 박스 */}
-      <div className="absolute top-[4.9rem] left-1/2 -translate-x-1/2 z-10 bg-white w-[80%] h-[4.8rem] pl-[1.5rem] leading-[4.8rem] rounded-xl shadow">
-        <span data-address>{currentAddress || mapData.data.road_address}</span>
+      <div className="absolute top-[4.9rem] left-1/2 -translate-x-1/2 z-10 bg-white w-[80%] h-[4.8rem] pl-[1.5rem] leading-[4.8rem] rounded-xl shadow flex items-center">
+        <span
+          data-address
+          className="text-[1.4rem] font-semibold leading-normal"
+          style={{
+            fontFamily: 'Pretendard Variable',
+            color: '#0A0A0A',
+            textAlign: 'center',
+          }}
+        >
+          {currentAddress || mapData.data.road_address}
+        </span>
       </div>
 
       {/* 카테고리 칩 */}
-      <div className="absolute top-[11.1rem] z-10 w-full px-4 py-2">
+      <div className="absolute top-[11.1rem] z-10 w-full pl-4 py-2">
         <CategoryChips value={category} onChange={setCategory} />
       </div>
 
@@ -326,48 +434,22 @@ export const Home = () => {
       <div
         className="absolute bottom-[8.3rem] left-1/2 -translate-x-1/2 z-10 flex py-[1.4rem] px-[2rem] justify-center items-center gap-2 rounded-3xl border border-[#FF661F] bg-[#FEFEFE] shadow-[0.5px_4px_7px_0_rgba(255,102,31,0.80)] cursor-pointer hover:bg-orange-50 transition-colors"
         onClick={() => {
-          // 현재 지도 중심 좌표 가져오기
-          if (mapInstanceRef.current) {
-            // mapInstanceRef.current 사용
-            const center = mapInstanceRef.current.getCenter();
-            const lat = center.getLat();
-            const lng = center.getLng();
+          // MapContext에서 현재 지도 상태를 가져와서 전달
+          console.log('🚀 AI 코스 추천 버튼 클릭!');
+          console.log('📍 현재 지도 중심 좌표:', mapState.center);
+          console.log('🗺️ 지도 상태:', mapState);
 
-            console.log('🚀 AI 코스 추천 버튼 클릭!');
-            console.log('📍 현재 지도 중심 좌표:', { lat, lng });
-            console.log('🗺️ 지도 객체:', mapInstanceRef.current);
-
-            navigate('/ai', {
-              state: {
-                centerLat: lat,
-                centerLng: lng,
-              },
-            });
-          } else {
-            // 지도가 아직 로드되지 않은 경우 기본값 사용
-            console.log('⚠️ 지도가 아직 로드되지 않음, 기본 좌표 사용');
-            console.log('📍 기본 좌표:', { lat: 37.4961, lng: 126.98231 });
-
-            navigate('/ai', {
-              state: {
-                centerLat: 37.4961,
-                centerLng: 126.98231,
-              },
-            });
-          }
+          navigate('/ai', {
+            state: {
+              centerLat: mapState.center.lat,
+              centerLng: mapState.center.lng,
+            },
+          });
         }}
       >
         <span className="text-center text-[#FF661F] text-[1.4rem] font-semibold leading-none">
           ⛳ AI 코스 추천
         </span>
-      </div>
-
-      {/* 개발용: 모달 테스트 버튼 (나중에 제거) */}
-      <div
-        className="absolute bottom-[4rem] left-1/2 -translate-x-1/2 z-10 flex py-[1rem] px-[2rem] justify-center items-center gap-2 rounded-2xl border border-gray-400 bg-gray-200 cursor-pointer hover:bg-gray-300 transition-colors"
-        onClick={resetFirstVisit}
-      >
-        <span className="text-center text-gray-700 text-sm">🧪 모달 테스트 (개발용)</span>
       </div>
 
       {/* 뱃지 모달 */}

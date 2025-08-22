@@ -52,10 +52,10 @@ const MyReview = () => {
       <div className="mt-[3rem] px-[4rem] grid grid-cols-2 gap-[1.2rem] sm:gap-[1.6rem]">
         {reviews.length > 0 ? (
           reviews.map((review, idx) => (
-            <ReviewCard 
-              key={`review-${idx}`} 
+            <ReviewCard
+              key={`review-${idx}`}
               review={review}
-              onClick={() => navigate(`/stores/${review.storeId || idx}`)}
+              onClick={() => navigate(`/stores/${review.store_id || idx}`)}
             />
           ))
         ) : (

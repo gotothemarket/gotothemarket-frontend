@@ -3,14 +3,18 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { loadKakaoMaps, createMap, makeMarkerImage } from '../../utils/kakaoMap';
 import pinUrl from '../../assets/pin.svg';
 import closeIcon from '../../assets/close_icon.svg';
+import { useMapContext } from '../../contexts/MapContext';
 
 const ReportLocation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { initialLocation, initialAddress } = location.state || {};
 
+  // MapContext 사용
+  const { mapState, updateMapCenter, updateMapLevel, updateMapAddress } = useMapContext();
+
   const [selectedLocation, setSelectedLocation] = useState(null);
-  const [address, setAddress] = useState(initialAddress || '');
+  const [address, setAddress] = useState(initialAddress || mapState.address);
   const KAKAO_KEY = import.meta.env.VITE_KAKAO_MAP_API_KEY;
 
   useEffect(() => {
@@ -32,14 +36,14 @@ const ReportLocation = () => {
 
         await loadKakaoMaps(KAKAO_KEY);
 
-        // 초기 위치 설정 (전달받은 위치 또는 기본 위치)
-        const initialLat = initialLocation?.lat || 37.49612;
-        const initialLng = initialLocation?.lng || 126.98231;
+        // 초기 위치 설정 (MapContext 우선, 전달받은 위치, 기본 위치 순)
+        const initialLat = initialLocation?.lat || mapState.center.lat;
+        const initialLng = initialLocation?.lng || mapState.center.lng;
 
         const { map } = createMap(mapContainer, {
           lat: initialLat,
           lng: initialLng,
-          level: 3,
+          level: mapState.level,
         });
 
         // 초기 위치에 마커 표시 (전달받은 위치가 있는 경우)
@@ -67,6 +71,8 @@ const ReportLocation = () => {
                 const addr = result[0].address.address_name;
                 setAddress(addr);
                 setSelectedLocation((prev) => ({ ...prev, address: addr }));
+                // MapContext 업데이트
+                updateMapAddress(addr);
               }
             });
           }
@@ -74,6 +80,16 @@ const ReportLocation = () => {
 
         // 마커 이미지 생성
         const markerImage = makeMarkerImage(pinUrl, { width: 40, height: 40 });
+
+        // 지도 이동 이벤트 리스너 추가
+        window.kakao.maps.event.addListener(map, 'dragend', () => {
+          const center = map.getCenter();
+          updateMapCenter(center.getLat(), center.getLng());
+        });
+
+        window.kakao.maps.event.addListener(map, 'zoom_changed', () => {
+          updateMapLevel(map.getLevel());
+        });
 
         // 지도 클릭 이벤트
         window.kakao.maps.event.addListener(map, 'click', (mouseEvent) => {
@@ -108,6 +124,8 @@ const ReportLocation = () => {
               const addr = result[0].address.address_name;
               setAddress(addr);
               setSelectedLocation((prev) => ({ ...prev, address: addr }));
+              // MapContext 업데이트
+              updateMapAddress(addr);
             } else {
               setAddress('주소를 가져올 수 없습니다');
               setSelectedLocation((prev) => ({ ...prev, address: '주소를 가져올 수 없습니다' }));

@@ -99,6 +99,7 @@ const Ai = () => {
 
   const nearestMarket = nearestMarketData?.data;
   console.log('🏪 가장 가까운 시장 정보:', nearestMarket);
+  console.log('🔍 nearestMarket 구조:', JSON.stringify(nearestMarket, null, 2));
 
   const categories = [
     { id: 'misc', label: '잡화', icon: miscIcon },
@@ -286,7 +287,7 @@ const Ai = () => {
     }
 
     const requestBody = {
-      market_id: nearestMarket?.market_id || 1,
+      market_id: nearestMarket?.marketId || nearestMarket?.market_id || 1,
       sets: storeSets,
     };
 
@@ -323,6 +324,8 @@ const Ai = () => {
           requestData: requestBody,
           responseData: data,
           showAsPopup: true,
+          centerLat: centerLat,
+          centerLng: centerLng,
         },
       });
     } catch (error) {
@@ -353,9 +356,36 @@ const Ai = () => {
           <div className="">
             {/* Introduction */}
             <p className="text-black text-lg p-[3rem]">
-              {nearestMarket
-                ? `${nearestMarket.marketName}의 코스를 추천해드릴게요.`
-                : '가장 가까운 시장의 코스를 추천해드릴게요.'}
+              {nearestMarket ? (
+                <span>
+                  <span
+                    style={{
+                      color: '#FFF9C9',
+                      fontFamily: 'Pretendard Variable',
+                      fontSize: '1.6rem',
+                      fontStyle: 'normal',
+                      fontWeight: 600,
+                      lineHeight: 'normal',
+                    }}
+                  >
+                    {nearestMarket.marketName || nearestMarket?.market_name}
+                  </span>
+                  <span
+                    style={{
+                      color: '#0A0A0A',
+                      fontFamily: 'Pretendard Variable',
+                      fontSize: '1.6rem',
+                      fontStyle: 'normal',
+                      fontWeight: 600,
+                      lineHeight: 'normal',
+                    }}
+                  >
+                    의 코스를 추천해드릴게요.
+                  </span>
+                </span>
+              ) : (
+                '가장 가까운 시장의 코스를 추천해드릴게요.'
+              )}
             </p>
 
             {/* Store Categories */}

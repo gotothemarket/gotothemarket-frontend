@@ -136,7 +136,7 @@ const MyFavorite = () => {
               favorite={favorite}
               showDelete={isDeleteMode}
               onDelete={handleDelete}
-              onClick={() => navigate(`/store/${favorite.storeId}`)}
+              onClick={() => navigate(`/stores/${favorite.storeId}`)}
               isDeleting={deleteFavoriteMutation.isLoading}
             />
           ))

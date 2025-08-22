@@ -143,8 +143,8 @@ export default function HomeBottomsheet({ open, onClose, children, onFullPage })
 
   if (!visible) return null;
 
-  // 기본 높이 + 확장 높이 계산
-  const baseHeight = '40rem';
+  // 기본 높이 + 확장 높이 계산 (시장 정보가 잘리지 않도록 높이 증가)
+  const baseHeight = '50rem';
   const dynamicHeight = isExpanding ? `calc(${baseHeight} + ${expandHeight}px)` : baseHeight;
 
   // translateY: 열림 0%, 닫힘 100% + 드래그(px)
@@ -203,9 +203,9 @@ export default function HomeBottomsheet({ open, onClose, children, onFullPage })
 
           {/* content */}
           <div
-            className="flex-1 pt-[1rem] overflow-y-auto px-4"
+            className="flex-1 pt-[1rem] overflow-y-auto px-4 pb-8"
             style={{
-              maxHeight: isExpanding ? 'calc(100vh - 100px)' : '50rem',
+              maxHeight: isExpanding ? 'calc(100vh - 100px)' : '60rem',
             }}
           >
             {children}

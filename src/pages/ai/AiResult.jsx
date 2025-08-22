@@ -10,25 +10,10 @@ import restaurantIcon from '../../assets/요리.svg'
 import arrowOrangeIcon from '../../assets/arrow_orange.svg'
 
 const AiResult = () => {
-  const location = useLocation()
-  const navigate = useNavigate()
-  const [isVisible, setIsVisible] = useState(false)
-  const { requestData, responseData, showAsPopup } = location.state || {};
-
-  // API 응답 데이터에서 코스 정보 추출
-  const courseData = responseData?.data
-    ? {
-        marketName: 'AI 추천 코스', // 실제로는 nearestMarket에서 가져온 시장명을 사용할 수 있음
-        course: responseData.data.courses.map((item, index) => ({
-          id: item.order,
-          storeId: item.store_id,
-          storeName: item.store_name,
-          category: getCategoryName(item.store_type),
-          keywords: item.keywords,
-          icon: getCategoryIcon(item.store_type),
-        })),
-      }
-    : null;
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [isVisible, setIsVisible] = useState(false);
+  const { requestData, responseData, showAsPopup, centerLat, centerLng } = location.state || {};
 
   // store_type을 카테고리 이름으로 변환
   const getCategoryName = (storeType) => {
@@ -59,6 +44,21 @@ const AiResult = () => {
     };
     return iconMap[storeType] || produceIcon;
   };
+
+  // API 응답 데이터에서 코스 정보 추출
+  const courseData = responseData?.data
+    ? {
+        marketName: 'AI 추천 코스', // 실제로는 nearestMarket에서 가져온 시장명을 사용할 수 있음
+        course: responseData.data.courses.map((item, index) => ({
+          id: item.order,
+          storeId: item.store_id,
+          storeName: item.store_name,
+          category: getCategoryName(item.store_type),
+          keywords: item.keywords,
+          icon: getCategoryIcon(item.store_type),
+        })),
+      }
+    : null;
 
   useEffect(() => {
     // 팝업 느낌을 위한 애니메이션
@@ -126,8 +126,8 @@ const AiResult = () => {
                   <div className="px-[1rem]">
                     <MapBox
                       title=""
-                      lat={37.5665}
-                      lng={126.978}
+                      lat={centerLat || 37.5665}
+                      lng={centerLng || 126.978}
                       className="h-[18.5rem] aspect-[317.01/185.00]"
                       sectionClassName="pb-[3rem] pt-[-1rem]"
                     />
@@ -171,9 +171,9 @@ const AiResult = () => {
                               {item.keywords.map((keyword, keywordIndex) => (
                                 <span
                                   key={keywordIndex}
-                                  className="text-xs bg-[#FFF8C8] text-[#FF9C1F] px-2 py-1 rounded-full"
+                                  className="text-xs text-[black] px-2 py-1 rounded-full"
                                 >
-                                  {keyword}
+                                  #{keyword}
                                 </span>
                               ))}
                             </div>
@@ -201,36 +201,33 @@ const AiResult = () => {
 
   // 일반 페이지로 표시 (showAsPopup이 false인 경우)
   return (
-    <div className='w-full min-h-screen' style={{
-        background: 'linear-gradient(to bottom, #FF9C1F 0%, #F8FA90 50%, #FFF8C8 100%)'
-      }}>
-      <div className='relative'>
-        <Header 
-          title="AI 코스 추천" 
-          onBack={() => navigate(-1)} 
+    <div
+      className="w-full min-h-screen"
+      style={{
+        background: 'linear-gradient(to bottom, #FF9C1F 0%, #F8FA90 50%, #FFF8C8 100%)',
+      }}
+    >
+      <div className="relative">
+        <Header
+          title="AI 코스 추천"
+          onBack={() => navigate(-1)}
           backgroundColor="rgba(254, 254, 254, 0.30)"
         />
-        
-        <div className='p-6'>
-          <div className='text-center space-y-4'>
-            <h2 className='text-2xl font-bold text-gray-800'>
-              코스 추천 결과
-            </h2>
-            <p className='text-gray-600'>
-              선택하신 조건을 바탕으로 AI가 추천하는 코스입니다.
-            </p>
-            
+
+        <div className="p-6">
+          <div className="text-center space-y-4">
+            <h2 className="text-2xl font-bold text-gray-800">코스 추천 결과</h2>
+            <p className="text-gray-600">선택하신 조건을 바탕으로 AI가 추천하는 코스입니다.</p>
+
             {/* 여기에 실제 코스 추천 결과 내용이 들어갈 예정 */}
-            <div >
-              <p className='text-sm text-gray-500'>
-                코스 추천 결과가 여기에 표시됩니다.
-              </p>
+            <div>
+              <p className="text-sm text-gray-500">코스 추천 결과가 여기에 표시됩니다.</p>
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default AiResult

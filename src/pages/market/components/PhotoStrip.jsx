@@ -28,8 +28,21 @@ export default function PhotoStrip({
   return (
     <section className="pt-[3rem] px-[1.5rem]">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-        {!isMarket && storeId && <PhotoUploader storeId={storeId} ctaLabel={ctaLabel} />}
+        <h3
+          style={{
+            color: '#0A0A0A',
+            fontFamily: 'Pretendard Variable',
+            fontSize: '1.6rem',
+            fontStyle: 'normal',
+            fontWeight: 600,
+            lineHeight: 'normal',
+          }}
+        >
+          {title}
+        </h3>
+        {!isMarket && storeId && (
+          <PhotoUploader storeId={storeId} ctaLabel={ctaLabel || '사진 제보하기'} />
+        )}
       </div>
 
       {photos.length === 0 ? (
@@ -125,10 +138,24 @@ function PhotoUploader({ storeId, ctaLabel }) {
       />
       <button
         onClick={handleUploadClick}
-        className="text-sm text-primary-1000 disabled:opacity-50"
+        className="disabled:opacity-50"
         disabled={uploadMutation.isPending}
+        style={{
+          color: '#FF9C1F',
+          textAlign: 'right',
+          fontFamily: 'Pretendard Variable',
+          fontSize: '1.2rem',
+          fontStyle: 'normal',
+          fontWeight: 600,
+          lineHeight: 'normal',
+          backgroundColor: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          padding: '0',
+          margin: '0',
+        }}
       >
-        {uploadMutation.isPending ? '업로드 중...' : ctaLabel}
+        {uploadMutation.isPending ? '업로드 중...' : ctaLabel || '사진 제보하기'}
       </button>
     </>
   );

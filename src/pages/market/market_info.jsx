@@ -21,9 +21,8 @@ export default function MarketInfo() {
   const normalized = useMemo(() => {
     const s = data?.data ?? data ?? {};
     const rows = [
-      { label: '개업연수', value: s.openingYears ? `${s.openingYears}년` : '정보 없음' },
-      { label: '개설주기', value: s.openingCycle || '정보 없음' },
       { label: '점포 수', value: `${s.storeCount ?? 0}개` },
+      { label: '개설주기', value: s.openingCycle || '정보 없음' },
       { label: '교통', value: s.transport || '정보 없음' },
       { label: '주차', value: s.parking ? '가능' : '불가' },
       { label: '화장실', value: s.toilet ? '있음' : '없음' },
@@ -100,6 +99,8 @@ export default function MarketInfo() {
           title={s.marketName}
           subtitle={s.marketAddress} // 상단 서브텍스트는 주소 노출
           // bookmark 생략 (원하면 bookmark, onToggleBookmark 추가)
+          isMarket={true}
+          openingYears={s.openingYears} // 개설주기
         />
 
         <InfoRows title="전통시장 정보" rows={rows} />

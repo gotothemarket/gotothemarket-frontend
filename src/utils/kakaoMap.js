@@ -38,7 +38,23 @@ export function toLatLng(lat, lng) {
 /** 지도 생성 */
 export function createMap(container, { lat, lng, level = 3 }) {
   const center = toLatLng(lat, lng);
-  const map = new window.kakao.maps.Map(container, { center, level });
+  const options = {
+    center,
+    level,
+    draggable: true,        // 드래그 가능
+    zoomable: true,         // 확대/축소 가능
+    scrollwheel: true,      // 마우스 휠로 확대/축소 가능
+    disableDoubleClick: false, // 더블클릭 확대 가능
+    disableDoubleTap: false,   // 더블탭 확대 가능 (모바일)
+    keyboardShortcuts: true,   // 키보드 단축키 활성화
+  };
+  const map = new window.kakao.maps.Map(container, options);
+  
+  // 확대/축소 이벤트 리스너 추가
+  window.kakao.maps.event.addListener(map, 'zoom_changed', () => {
+    console.log('🔍 현재 확대 레벨:', map.getLevel());
+  });
+  
   return { map, center };
 }
 
