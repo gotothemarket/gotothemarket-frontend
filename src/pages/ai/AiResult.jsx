@@ -13,7 +13,8 @@ const AiResult = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
-  const { requestData, responseData, showAsPopup, centerLat, centerLng } = location.state || {};
+  const { requestData, responseData, showAsPopup, centerLat, centerLng, nearestMarket } =
+    location.state || {};
 
   // store_type을 카테고리 이름으로 변환
   const getCategoryName = (storeType) => {
@@ -82,7 +83,7 @@ const AiResult = () => {
   if (showAsPopup) {
     return (
       <div
-        className={`min-h-screen py-[6rem] flex items-center justify-center transition-all duration-300 ${
+        className={`min-h-screen py-[6rem] flex  justify-center transition-all duration-300 ${
           isVisible ? 'opacity-100' : 'opacity-0'
         }`}
         style={{
@@ -110,10 +111,33 @@ const AiResult = () => {
 
               {/* 헤더 */}
               <div className=" p-6 text-center">
-                <p className="text-sm text-gray-600 mb-2">
-                  {courseData?.marketName || 'AI 추천 코스'}
+                <p
+                  className="mb-2"
+                  style={{
+                    color: '#907F60',
+                    textAlign: 'center',
+                    fontFamily: 'Pretendard Variable',
+                    fontSize: '1.2rem',
+                    fontStyle: 'normal',
+                    fontWeight: 600,
+                    lineHeight: 'normal',
+                  }}
+                >
+                  {nearestMarket?.marketName || nearestMarket?.market_name || 'AI 추천 코스'}
                 </p>
-                <h1 className="text-2xl font-bold text-black">코스 추천 완료</h1>
+                <h1
+                  style={{
+                    color: '#0A0A0A',
+                    textAlign: 'center',
+                    fontFamily: 'Pretendard Variable',
+                    fontSize: '2rem',
+                    fontStyle: 'normal',
+                    fontWeight: 600,
+                    lineHeight: 'normal',
+                  }}
+                >
+                  코스 추천 완료
+                </h1>
               </div>
 
               {!courseData ? (
@@ -140,7 +164,7 @@ const AiResult = () => {
                           className="flex justify-between items-center space-x-4 relative"
                         >
                           {/* 왼쪽 번호 원 */}
-                          <div className="w-[2.4rem] h-[2.4rem] bg-[#FF9C1F] rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
+                          <div className="w-[2.4rem] h-[2.4rem] mb-1 pb-1 border-1 border-white bg-[#FF9C1F] rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
                             {item.id}
                           </div>
 
@@ -164,14 +188,32 @@ const AiResult = () => {
 
                           {/* 가게 정보 */}
                           <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-black mb-1">
+                            <h3
+                              className="text-lg font-semibold text-black mb-1"
+                              style={{
+                                color: '#0A0A0A',
+                                fontFamily: 'Pretendard Variable',
+                                fontSize: '1.4rem',
+                                fontStyle: 'normal',
+                                fontWeight: 600,
+                                lineHeight: 'normal',
+                              }}
+                            >
                               {item.storeName}
                             </h3>
                             <div className="flex flex-wrap gap-1">
                               {item.keywords.map((keyword, keywordIndex) => (
                                 <span
                                   key={keywordIndex}
-                                  className="text-xs text-[black] px-2 py-1 rounded-full"
+                                  className="text-xs text-[black] pr-2 py-1 rounded-full"
+                                  style={{
+                                    color: '#0A0A0A',
+                                    fontFamily: 'Pretendard Variable',
+                                    fontSize: '1rem',
+                                    fontStyle: 'normal',
+                                    fontWeight: 400,
+                                    lineHeight: 'normal',
+                                  }}
                                 >
                                   #{keyword}
                                 </span>
@@ -181,10 +223,14 @@ const AiResult = () => {
 
                           {/* 오른쪽 화살표 */}
                           <div
-                            className="flex items-center text-gray-400 cursor-pointer hover:scale-110 transition-transform"
+                            className="flex items-center w-[1.2rem] h-[1.8rem] mr-[2rem] object-fit text-gray-400 cursor-pointer hover:scale-110 transition-transform"
                             onClick={() => navigate(`/stores/${item.storeId}`)}
                           >
-                            <img src={arrowOrangeIcon} alt="화살표" className="w-5 h-5" />
+                            <img
+                              src={arrowOrangeIcon}
+                              alt="화살표"
+                              className="w-full h-full object-fit"
+                            />
                           </div>
                         </div>
                       ))}

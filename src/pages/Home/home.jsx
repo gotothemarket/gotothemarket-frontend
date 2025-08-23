@@ -29,9 +29,100 @@ export const Home = () => {
   // MapContext 사용
   const { mapState, updateMapCenter, updateMapLevel, updateMapAddress } = useMapContext();
 
+  // 마커 이미지(기본/선택) 준비
+  const STORE_IMG = {
+    normal: null, // 나중에 초기화
+    selected: null,
+  };
+  const MARKET_IMG = {
+    normal: null, // 나중에 초기화
+    selected: null,
+  };
+
+  // 카테고리 ID를 storeTypeId로 변환하는 함수
+  const getCategoryStoreTypeId = (categoryId) => {
+    const categoryMap = {
+      produce: 1, // 과일·야채
+      seafood: 2, // 수산
+      restaurant: 3, // 식당
+      bakery: 4, // 빵/떡
+      misc: 5, // 잡화
+      street: 6, // 길거리음식
+      meat: 7, // 축산
+      clothing: 8, // 의류
+    };
+    return categoryMap[categoryId];
+  };
+
+  // 마커 업데이트 함수
+  const updateMarkers = (data) => {
+    // 기존 마커 제거
+    markers.forEach((m) => m.marker?.setMap(null));
+
+    // 마커 이미지가 초기화되지 않았다면 초기화
+    if (!STORE_IMG.normal || !MARKET_IMG.normal) {
+      STORE_IMG.normal = makeMarkerImage(pinUrl, { width: 36, height: 36 });
+      STORE_IMG.selected = makeMarkerImage(pinUrl, { width: 42, height: 42 });
+      MARKET_IMG.normal = makeMarkerImage(marketIconUrl, { width: 36, height: 36 });
+      MARKET_IMG.selected = makeMarkerImage(marketIconUrl, { width: 42, height: 42 });
+    }
+
+    const newMarkers = [];
+
+    // Store 마커 (API 응답 사용)
+    data?.stores?.forEach((store) => {
+      const pos = new window.kakao.maps.LatLng(store.latitude, store.longitude);
+      const marker = new window.kakao.maps.Marker({
+        position: pos,
+        image: STORE_IMG.normal,
+        map: mapInstanceRef.current,
+        opacity: 1,
+      });
+      window.kakao.maps.event.addListener(marker, 'click', () => {
+        setSelected({ type: 'store', id: store.storeId });
+      });
+      newMarkers.push({
+        marker,
+        type: 'store',
+        id: store.storeId,
+        data: store,
+        images: STORE_IMG,
+      });
+    });
+
+    // Market 마커 (API 응답 사용)
+    data?.markets?.forEach((market) => {
+      const pos = new window.kakao.maps.LatLng(market.latitude, market.longitude);
+      const marker = new window.kakao.maps.Marker({
+        position: pos,
+        image: MARKET_IMG.normal,
+        map: mapInstanceRef.current,
+        opacity: 1,
+      });
+      window.kakao.maps.event.addListener(marker, 'click', () => {
+        setSelected({ type: 'market', id: market.marketId });
+      });
+      newMarkers.push({
+        marker,
+        type: 'market',
+        id: market.marketId,
+        data: market,
+        images: MARKET_IMG,
+      });
+    });
+
+    setMarkers(newMarkers);
+
+    // 선택 상태 초기화 및 스타일 적용
+    setSelected(null);
+    applyMarkerStyles(null);
+  };
+
   // first-launch API 호출
   const firstLaunchMutation = useMutation(firstLaunchOptions());
-  const { data: homeData } = useQuery(homeMapOptions());
+  const { data: homeData } = useQuery(
+    homeMapOptions(category ? getCategoryStoreTypeId(category) : null),
+  );
 
   // 사용자가 처음 접속했는지 확인하는 함수
   const checkFirstVisit = async () => {
@@ -143,6 +234,20 @@ export const Home = () => {
   useEffect(() => {
     applyMarkerStyles(selected);
   }, [selected, markers]);
+
+  // homeData 변경 시 마커 업데이트
+  useEffect(() => {
+    if (homeData && mapInstanceRef.current) {
+      updateMarkers(homeData);
+    }
+  }, [homeData]);
+
+  // 카테고리 변경 시 선택 상태 초기화
+  useEffect(() => {
+    if (selected) {
+      setSelected(null);
+    }
+  }, [category]);
 
   // 현재 위치 요청 이벤트 리스너
   useEffect(() => {
@@ -296,15 +401,11 @@ export const Home = () => {
         map._hasEventListeners = true;
       }
 
-      // 마커 이미지(기본/선택) 준비
-      const STORE_IMG = {
-        normal: makeMarkerImage(pinUrl, { width: 36, height: 36 }),
-        selected: makeMarkerImage(pinUrl, { width: 42, height: 42 }), // 약 1.15배
-      };
-      const MARKET_IMG = {
-        normal: makeMarkerImage(marketIconUrl, { width: 36, height: 36 }),
-        selected: makeMarkerImage(marketIconUrl, { width: 42, height: 42 }),
-      };
+      // 마커 이미지(기본/선택) 초기화
+      STORE_IMG.normal = makeMarkerImage(pinUrl, { width: 36, height: 36 });
+      STORE_IMG.selected = makeMarkerImage(pinUrl, { width: 42, height: 42 }); // 약 1.15배
+      MARKET_IMG.normal = makeMarkerImage(marketIconUrl, { width: 36, height: 36 });
+      MARKET_IMG.selected = makeMarkerImage(marketIconUrl, { width: 42, height: 42 });
 
       // Store 마커 (API 응답 사용)
       homeData?.stores?.forEach((store) => {

@@ -199,7 +199,7 @@ export default function StoreInfo() {
     <div className="h-full bg-white overflow-y-scroll scrollbar-hidden">
       <PageHeader onBack={handleBack} />
 
-      <div className="px-4 pb-20">
+      <div className="px-4 pb-[10rem]">
         <EntityHeader
           icon={store.store_icon}
           title={store.store_name}
@@ -223,7 +223,9 @@ export default function StoreInfo() {
               average={review_summary.average_rating || 0}
               count={review_summary.review_count || 0}
             />
-            <ReviewList reviews={reviews || []} />
+            <div className="max-h-[50rem] overflow-y-auto scrollbar-hidden">
+              <ReviewList reviews={reviews || []} />
+            </div>
           </section>
         )}
       </div>

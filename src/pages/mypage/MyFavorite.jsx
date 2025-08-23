@@ -1,6 +1,6 @@
 import Header from '../../components/Header';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { favoritesOptions, deleteFavoriteOptions } from '../../apis/mypage/api';
 import closeIcon from '../../assets/close_icon_white.svg';
@@ -31,9 +31,7 @@ const FavoriteCard = ({ favorite, showDelete, onDelete, onClick, isDeleting }) =
         }}
         disabled={isDeleting}
         className={`w-[2rem] h-[2rem] rounded-full cursor-pointer flex items-center justify-center flex-shrink-0 mr-[2rem] transition-colors ${
-          isDeleting 
-            ? 'bg-[#666666] cursor-not-allowed' 
-            : 'bg-[#FF4444] hover:bg-[#FF6666]'
+          isDeleting ? 'bg-[#666666] cursor-not-allowed' : 'bg-[#FF4444] hover:bg-[#FF6666]'
         }`}
       >
         {isDeleting ? (
@@ -54,30 +52,85 @@ const MyFavorite = () => {
   // 즐겨찾기 데이터 가져오기
   const { data: favoritesData, isLoading, error } = useQuery(favoritesOptions());
 
+  // 로컬 즐겨찾기 상태 관리
+  const [localFavorites, setLocalFavorites] = useState([]);
+  const [localTotal, setLocalTotal] = useState(0);
+
+  // favoritesData가 변경될 때마다 로컬 상태 동기화
+  useEffect(() => {
+    if (favoritesData?.data) {
+      setLocalFavorites(favoritesData.data.favorites || []);
+      setLocalTotal(favoritesData.data.total || 0);
+    }
+  }, [favoritesData?.data?.favorites, favoritesData?.data?.total]);
+
   // 즐겨찾기 삭제 mutation
   const deleteFavoriteMutation = useMutation({
-    ...deleteFavoriteOptions(),
-    onSuccess: () => {
-      // 삭제 성공 시 즐겨찾기 목록을 다시 가져오기
-      queryClient.invalidateQueries({ queryKey: ['favorites'] });
-      console.log('즐겨찾기 삭제 성공');
+    mutationFn: async (storeId) => {
+      console.log('🚀 즐겨찾기 삭제 시작:', { storeId });
+
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${baseUrl}/api/stores/${storeId}/toggle-favorite`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'remove',
+        }),
+      });
+
+      console.log('📡 API 응답:', response.status, response.statusText);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ API 에러 응답:', errorText);
+        throw new Error(`즐겨찾기 삭제에 실패했습니다. (${response.status})`);
+      }
+
+      const result = await response.json();
+      console.log('✅ 삭제 성공:', result);
+      return result;
+    },
+    onSuccess: (data, variables) => {
+      // 삭제 성공 시 즉시 UI 업데이트
+      const deletedStoreId = variables;
+      console.log('🎉 즐겨찾기 삭제 성공:', { deletedStoreId, data });
+
+      // 로컬 상태에서 삭제된 항목 제거
+      setLocalFavorites((prev) => prev.filter((favorite) => favorite.storeId !== deletedStoreId));
+      setLocalTotal((prev) => prev - 1);
+
       // 삭제 모드 자동 종료
       setIsDeleteMode(false);
+
+      // 백그라운드에서 데이터 새로고침 (UI는 즉시 업데이트됨)
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
     },
     onError: (error) => {
-      console.error('즐겨찾기 삭제 실패:', error);
-      alert('즐겨찾기 삭제에 실패했습니다.');
+      console.error('💥 즐겨찾기 삭제 실패:', error);
+      alert(`즐겨찾기 삭제에 실패했습니다: ${error.message}`);
     },
   });
 
-  const favorites = favoritesData?.data?.favorites || [];
-  const total = favoritesData?.data?.total || 0;
+  // 로컬 상태 사용 (즉시 UI 업데이트를 위해)
+  const favorites = localFavorites;
+  const total = localTotal;
 
   const handleDelete = async (favoriteToDelete) => {
+    console.log('🔘 삭제 버튼 클릭됨:', favoriteToDelete);
+
+    if (!favoriteToDelete || !favoriteToDelete.storeId) {
+      console.error('❌ 삭제할 즐겨찾기 정보가 없거나 storeId가 없음:', favoriteToDelete);
+      alert('삭제할 즐겨찾기 정보를 찾을 수 없습니다.');
+      return;
+    }
+
     try {
+      console.log('🚀 삭제 뮤테이션 실행:', favoriteToDelete.storeId);
       await deleteFavoriteMutation.mutateAsync(favoriteToDelete.storeId);
     } catch (error) {
-      console.error('즐겨찾기 삭제 중 오류 발생:', error);
+      console.error('💥 즐겨찾기 삭제 중 오류 발생:', error);
     }
   };
 
@@ -137,7 +190,10 @@ const MyFavorite = () => {
               showDelete={isDeleteMode}
               onDelete={handleDelete}
               onClick={() => navigate(`/stores/${favorite.storeId}`)}
-              isDeleting={deleteFavoriteMutation.isLoading}
+              isDeleting={
+                deleteFavoriteMutation.isPending &&
+                deleteFavoriteMutation.variables === favorite.storeId
+              }
             />
           ))
         ) : (

@@ -326,6 +326,7 @@ const Ai = () => {
           showAsPopup: true,
           centerLat: centerLat,
           centerLng: centerLng,
+          nearestMarket: nearestMarket,
         },
       });
     } catch (error) {
@@ -390,7 +391,19 @@ const Ai = () => {
 
             {/* Store Categories */}
             <div className="space-y-4 px-[3rem]">
-              <h2 className="text-black font-semibold text-lg">어떤 가게를 찾아볼까요?</h2>
+              <h2
+                className="font-semibold text-lg"
+                style={{
+                  color: '#0A0A0A',
+                  fontFamily: 'Pretendard Variable',
+                  fontSize: '1.6rem',
+                  fontStyle: 'normal',
+                  fontWeight: 600,
+                  lineHeight: 'normal',
+                }}
+              >
+                어떤 가게를 찾아볼까요?
+              </h2>
               <div className="flex justify-center flex-wrap gap-3">
                 {categories.map((category) => (
                   <CategoryChip
@@ -408,17 +421,48 @@ const Ai = () => {
 
             {/* Store Conditions - 항상 표시 */}
             <div className="space-y-4">
-              <h2 className="text-black font-semibold text-lg mt-[3rem] px-[3rem]">
+              <h2
+                className="font-semibold text-lg mt-[3rem] px-[3rem]"
+                style={{
+                  color: '#0A0A0A',
+                  fontFamily: 'Pretendard Variable',
+                  fontSize: '1.6rem',
+                  fontStyle: 'normal',
+                  fontWeight: 600,
+                  lineHeight: 'normal',
+                }}
+              >
                 마음에 드는 가게 조건을 골라주세요
               </h2>
-              <p className="text-black px-[3rem]">
-                업종을 선택하면 해당 업종의 키워드가 표시됩니다. 최대 5개 선택할 수 있어요! (
-                {selectedConditions.length}/5)
+              <p
+                className="px-[3rem]"
+                style={{
+                  color: '#787878',
+                  fontFamily: 'Pretendard Variable',
+                  fontSize: '1.1rem',
+                  fontStyle: 'normal',
+                  fontWeight: 500,
+                  lineHeight: '3rem',
+                }}
+              >
+                최대 5개 선택할 수 있어요!
               </p>
 
               {!selectedCategory && (
                 <div className="text-center py-8 px-[3rem]">
-                  <p className="text-gray-600">먼저 위에서 업종을 선택해주세요</p>
+                  <p
+                    className="text-gray-600"
+                    style={{
+                      color: '#787878',
+                      fontFamily: 'Pretendard Variable',
+                      fontSize: '1.1rem',
+                      fontStyle: 'normal',
+                      fontWeight: 500,
+                      lineHeight: '1.3rem',
+                    }}
+                  >
+                    먼저 위에서 업종을 선택해주세요
+                  </p>
                 </div>
               )}
 
@@ -438,7 +482,18 @@ const Ai = () => {
                 <div className="flex gap-4 overflow-x-auto pb-2 w-full pl-[3rem]">
                   {categoryData.groups.map((group) => (
                     <div key={group.vibe_type_id} className="space-y-2 flex-shrink-0 min-w-fit">
-                      <h3 className="text-orange-600 text-sm">{group.vibe_type_name}</h3>
+                      <h3
+                        style={{
+                          color: '#FF9C1F',
+                          fontFamily: 'Pretendard Variable',
+                          fontSize: '1.4rem',
+                          fontStyle: 'normal',
+                          fontWeight: 600,
+                          lineHeight: '3rem',
+                        }}
+                      >
+                        {group.vibe_type_name}
+                      </h3>
                       <div className="space-y-2 flex gap-2 flex-col">
                         {group.keywords.map((keyword) => (
                           <button
@@ -471,15 +526,62 @@ const Ai = () => {
             {/* Footer Actions - 항상 표시 */}
             <div className="space-y-4 pt-4">
               <div className="space-y-3">
-                <p className="ml-auto mt-[7.1rem] text-black text-sm text-right px-[3rem]">
-                  최대 4개 선택할 수 있어요! {storeSets.length}/4
+                <p
+                  className="ml-auto mt-[7.1rem] text-right px-[3rem]"
+                  style={{
+                    color: '#787878',
+                    fontFamily: 'Pretendard Variable',
+                    fontSize: '1.1rem',
+                    fontStyle: 'normal',
+                    fontWeight: 500,
+                    lineHeight: '1.3rem',
+                  }}
+                >
+                  최대 4개 선택할 수 있어요!{' '}
+                  <span
+                    style={{
+                      color: '#FF9C1F',
+                      textAlign: 'center',
+                      fontFamily: 'Pretendard Variable',
+                      fontSize: '1.4rem',
+                      fontStyle: 'normal',
+                      fontWeight: 600,
+                      lineHeight: 'normal',
+                    }}
+                  >
+                    {storeSets.length}
+                  </span>
+                  <span
+                    style={{
+                      color: '#0A0A0A',
+                      fontFamily: 'Pretendard Variable',
+                      fontSize: '1.4rem',
+                      fontStyle: 'normal',
+                      fontWeight: 600,
+                      lineHeight: 'normal',
+                    }}
+                  >
+                    /4
+                  </span>
                 </p>
 
                 {canAddMore && (
                   <button
                     onClick={handleAddStore}
                     disabled={!selectedCategory || selectedConditions.length === 0}
-                    className="ml-auto mx-[3rem] flex justify-center items-center flex-shrink-0 rounded-[2rem] border border-[#FF9C1F] bg-[#FEFEFE] w-[12rem] h-[3.7rem] p-[1rem_2.7rem_1rem_2.8rem] text-orange-600 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="ml-auto mx-[3rem] flex justify-center items-center flex-shrink-0 rounded-[2rem] border border-[#FF9C1F] bg-[#FEFEFE] w-[12rem] h-[3.7rem]  hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      color: '#FF9C1F',
+                      textAlign: 'center',
+                      fontFamily: 'Pretendard Variable',
+                      fontSize: '1.4rem',
+                      fontStyle: 'normal',
+                      fontWeight: 600,
+                      lineHeight: 'normal',
+                      borderRadius: '2rem',
+                      border: '0.8px solid #FF9C1F',
+                      background: '#FEFEFE',
+                    }}
                   >
                     + 가게 추가
                   </button>
@@ -489,6 +591,19 @@ const Ai = () => {
                   onClick={handleSubmitRecommendation}
                   disabled={storeSets.length < 2}
                   className="mx-auto mt-[4.8rem] flex justify-center items-center flex-shrink-0 rounded-[1rem] bg-[#FF9C1F] w-[30rem] h-[4.8rem] text-white font-semibold text-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{
+                    borderRadius: '1rem',
+                    background: '#FF9C1F',
+                    width: '30rem',
+                    height: '4.8rem',
+                    color: '#FEFEFE',
+                    textAlign: 'center',
+                    fontFamily: 'Pretendard Variable',
+                    fontSize: '1.4rem',
+                    fontStyle: 'normal',
+                    fontWeight: 600,
+                    lineHeight: 'normal',
+                  }}
                 >
                   코스 추천받기
                 </button>

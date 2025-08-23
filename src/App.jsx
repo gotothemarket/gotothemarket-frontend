@@ -66,6 +66,7 @@ export default function App() {
             <Route path="/mypage/review" element={<MyReview />} />
             <Route path="/ai" element={<Ai />} />
             <Route path="/ai/result" element={<AiResult />} />
+            <Route path="/mypage/favorite" element={<MyFavorite />} />
           </Route>
         </Routes>
 

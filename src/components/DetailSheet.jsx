@@ -117,6 +117,9 @@ export default function DetailSheet({ selected, onClose, showMap = false }) {
 function StoreDetail({ payload }) {
   const { store, photos = [] } = payload;
 
+  console.log('🔍 StoreDetail payload:', payload);
+  console.log('🔍 StoreDetail photos:', photos);
+
   const rows = [
     { label: '종류', value: store.type_name },
     {
@@ -146,7 +149,11 @@ function StoreDetail({ payload }) {
         <InfoRows rows={rows} />
       </section>
 
-      <PhotoStrip title="가게 사진" photos={normalizePhotos(photos)} />
+              <PhotoStrip 
+          title="가게 사진" 
+          photos={normalizePhotos(photos)} 
+          storeId={store.store_id}
+        />
 
       {/* 시트 안에 지도를 넣고 싶으면 주석 해제
       {showMap && (
@@ -162,11 +169,11 @@ function StoreDetail({ payload }) {
 function MarketDetail({ payload }) {
   // API 응답 필드 사용
   const rows = [
-    { label: '점포 수', value: `${s.storeCount ?? 0}개` },
-    { label: '개설주기', value: s.openingCycle || '정보 없음' },
-    { label: '교통', value: s.transport || '정보 없음' },
-    { label: '주차', value: s.parking ? '가능' : '불가' },
-    { label: '화장실', value: s.toilet ? '있음' : '없음' },
+    { label: '점포 수', value: `${payload.storeCount ?? 0}개` },
+    { label: '개설주기', value: payload.openingCycle || '정보 없음' },
+    { label: '교통', value: payload.transport || '정보 없음' },
+    { label: '주차', value: payload.parking ? '가능' : '불가' },
+    { label: '화장실', value: payload.toilet ? '있음' : '없음' },
   ];
 
   const photos = (payload.marketMainImageUrls || []).map((url, i) => ({
@@ -202,12 +209,21 @@ function formatHHMM(time) {
 }
 
 function normalizePhotos(photos) {
-  return photos.map((p, i) => ({ photo_id: p.photo_id ?? i, photo_url: p.photo_url }));
+  console.log('🔍 normalizePhotos input:', photos);
+  const normalized = photos.map((p, i) => ({ 
+    photo_id: p.photo_id ?? p.photoId ?? p.id ?? i, 
+    photo_url: p.photo_url ?? p.photoUrl ?? p.url 
+  }));
+  console.log('🔍 normalizePhotos output:', normalized);
+  return normalized;
 }
 
 /* ============ helpers (store normalize) ============ */
 function normalizeStorePayload(data) {
+  console.log('🔍 normalizeStorePayload input:', data);
   const s = data?.data ?? data ?? {};
+  console.log('🔍 normalizeStorePayload s:', s);
+  console.log('🔍 normalizeStorePayload s.photos:', s.photos);
 
   const toTimeNumber = (t) => {
     if (t == null) return undefined;
@@ -247,12 +263,13 @@ function normalizeStorePayload(data) {
     opening_hours: toTimeNumber(srcStore.openingHours ?? srcStore.opening_hours),
     closing_hours: toTimeNumber(srcStore.closingHours ?? srcStore.closing_hours),
     phone_number: srcStore.phoneNumber ?? srcStore.phone_number ?? '',
+    store_address: srcStore.storeAddress ?? srcStore.address ?? srcStore.store_address ?? '',
   };
 
-  const photos = Array.isArray(s.photos)
+  const photos = Array.isArray(s.photos) 
     ? s.photos.map((p, i) => ({
-        photo_id: p.photo_id ?? p.id ?? i,
-        photo_url: p.photo_url ?? p.url,
+        photo_id: p.photo_id ?? p.photoId ?? p.id ?? i,
+        photo_url: p.photo_url ?? p.photoUrl ?? p.url,
       }))
     : [];
 

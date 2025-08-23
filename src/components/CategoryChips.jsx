@@ -10,6 +10,7 @@ import streetIcon from '../assets/길거리.svg';
 import bakeryIcon from '../assets/빵떡.svg';
 
 const CATEGORIES = [
+  { id: null, label: '전체', icon: null, storeTypeId: null },
   { id: 'produce', label: '과일·야채', icon: produceIcon, storeTypeId: 1 },
   { id: 'seafood', label: '수산', icon: seafoodIcon, storeTypeId: 2 },
   { id: 'restaurant', label: '식당', icon: restaurantIcon, storeTypeId: 3 },

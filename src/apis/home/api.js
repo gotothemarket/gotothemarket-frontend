@@ -18,8 +18,11 @@ export const mapOptions = (params = {}) =>
   });
 
 // 홈 지도 데이터 (/api/home)
-export const homeMapOptions = () =>
+export const homeMapOptions = (storeTypeId) =>
   createQueryOptions({
-    queryKey: k.home.home(),
-    queryFn: ({ signal }) => apiGet('/api/home', { signal }),
+    queryKey: k.home.home(storeTypeId),
+    queryFn: ({ signal }) => {
+      const params = storeTypeId ? { storeTypeId } : {};
+      return apiGet('/api/home', { signal, params });
+    },
   });
