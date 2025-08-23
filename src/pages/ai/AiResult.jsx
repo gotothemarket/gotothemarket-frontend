@@ -159,6 +159,8 @@ const AiResult = () => {
                       markers={responseData?.data?.courses || []}
                       className="h-[18.5rem] aspect-[317.01/185.00]"
                       sectionClassName="pb-[3rem] pt-[-1rem]"
+                      zoomLevel={6}
+                      fitBounds={true}
                     />
 
                     {/* 코스 리스트 */}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import HomeBottomsheet from '../components/HomeBottomsheet'; // 업데이트된 컴포넌트
 import EntityHeader from '../pages/market/components/EntityHeader';
@@ -12,6 +12,7 @@ import { storeDetailOptions } from '../apis/apis';
 // selected: { type: 'store'|'market', id?, data? }
 export default function DetailSheet({ selected, onClose, showMap = false }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const open = !!selected;
 
   const [{ loading, error, payload }, setState] = useState({
@@ -101,7 +102,11 @@ export default function DetailSheet({ selected, onClose, showMap = false }) {
       )}
 
       {isStore && !storeQuery.isLoading && !storeQuery.error && storeQuery.data && (
-        <StoreDetail payload={normalizeStorePayload(storeQuery.data)} navigate={navigate} />
+        <StoreDetail
+          payload={normalizeStorePayload(storeQuery.data)}
+          navigate={navigate}
+          queryClient={queryClient}
+        />
       )}
 
       {isMarket && !marketQuery.isLoading && !marketQuery.error && marketQuery.data && (
@@ -114,11 +119,57 @@ export default function DetailSheet({ selected, onClose, showMap = false }) {
 /* ============================= */
 /* ========== STORE ============ */
 /* ============================= */
-function StoreDetail({ payload, navigate }) {
-  const { store, photos = [] } = payload;
+function StoreDetail({ payload, navigate, queryClient }) {
+  const { store: initialStore, photos = [] } = payload;
+  const [store, setStore] = useState(initialStore);
 
   console.log('🔍 StoreDetail payload:', payload);
   console.log('🔍 StoreDetail photos:', photos);
+
+  // 즐겨찾기 토글 함수
+  const handleToggleBookmark = async (storeId) => {
+    try {
+      // 즉시 UI 업데이트 (낙관적 업데이트)
+      setStore((prev) => ({
+        ...prev,
+        favorite_check: !prev.favorite_check,
+      }));
+
+      // API 호출하여 즐겨찾기 상태 변경
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+      const apiUrl = `${baseUrl}/api/stores/${storeId}/toggle-favorite`;
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          memberId: 1, // 임시로 1로 설정 (실제로는 로그인된 사용자 ID 사용)
+        }),
+      });
+
+      if (response.ok) {
+        // 성공 시 React Query 캐시 무효화
+        queryClient.invalidateQueries(['store', storeId]);
+        queryClient.invalidateQueries(['nearestMarket']);
+      } else {
+        // 실패 시 원래 상태로 되돌리기
+        setStore((prev) => ({
+          ...prev,
+          favorite_check: !prev.favorite_check,
+        }));
+        console.error('즐겨찾기 토글 실패:', response.status);
+      }
+    } catch (error) {
+      // 에러 시 원래 상태로 되돌리기
+      setStore((prev) => ({
+        ...prev,
+        favorite_check: !prev.favorite_check,
+      }));
+      console.error('즐겨찾기 토글 에러:', error);
+    }
+  };
 
   const rows = [
     { label: '종류', value: store.type_name },
@@ -136,7 +187,8 @@ function StoreDetail({ payload, navigate }) {
         icon={store.store_icon}
         title={store.store_name}
         subtitle="대창마니아님 제보"
-        // 모달에서는 즐겨찾기 토글 생략 → 버튼 숨김
+        bookmark={store.favorite_check}
+        onToggleBookmark={() => handleToggleBookmark(store.store_id)}
       />
 
       <section>

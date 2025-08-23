@@ -527,7 +527,21 @@ const Ai = () => {
             <div className="space-y-4 pt-4">
               <div className="space-y-3">
                 <p
-                  className="ml-auto mt-[7.1rem] text-right px-[3rem]"
+                  className="text-right mt-[7.1rem] px-[3rem]"
+                  style={{
+                    color: '#bbbbbbd5',
+                    fontFamily: 'Pretendard Variable',
+                    fontSize: '1.1rem',
+                    fontStyle: 'normal',
+                    fontWeight: 500,
+                    lineHeight: '1.3rem',
+                  }}
+                >
+                  *코스 추천을 받으려면 <br /> 최소 2개 이상의 가게를 선택해주세요*
+                </p>
+
+                <p
+                  className="ml-auto text-right px-[3rem]"
                   style={{
                     color: '#787878',
                     fontFamily: 'Pretendard Variable',

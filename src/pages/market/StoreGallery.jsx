@@ -188,12 +188,6 @@ const StoreGallery = () => {
             >
               <img src={closeIcon} alt="사진 닫기" />
             </button>
-            <button
-              onClick={() => handleDeleteClick(selectedPhoto)}
-              className="absolute bottom-4 right-4 p-2 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-70 transition-colors"
-            >
-              <img src={trashIcon} alt="사진 삭제" />
-            </button>
           </div>
         </div>
       )}

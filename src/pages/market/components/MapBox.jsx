@@ -10,6 +10,8 @@ export default function MapBox({
   markers = [],
   className = '',
   sectionClassName = '',
+  zoomLevel = 3,
+  fitBounds = false,
 }) {
   const ref = useRef(null);
   const KAKAO_KEY = import.meta.env.VITE_KAKAO_MAP_API_KEY;
@@ -25,7 +27,7 @@ export default function MapBox({
       .then(() => {
         // 마커가 있는 경우 마커들의 중심점을 계산하여 지도 중심 설정
         let mapCenter = { lat, lng };
-        let mapLevel = 3;
+        let mapLevel = zoomLevel;
 
         if (markers && markers.length > 0) {
           const validMarkers = markers.filter((marker) => marker.coord && marker.coord.coordinates);
@@ -47,15 +49,25 @@ export default function MapBox({
             const centerLat = (minLat + maxLat) / 2;
             const centerLng = (minLng + maxLng) / 2;
 
-            // 적절한 줌 레벨 계산 (마커들이 모두 보이도록)
-            const latDiff = maxLat - minLat;
-            const lngDiff = maxLng - minLng;
-            const maxDiff = Math.max(latDiff, lngDiff);
+            // fitBounds가 true일 때 적절한 줌 레벨 계산 (마커들이 모두 보이면서 최대한 확대)
+            if (fitBounds) {
+              const latDiff = maxLat - minLat;
+              const lngDiff = maxLng - minLng;
+              const maxDiff = Math.max(latDiff, lngDiff);
 
-            if (maxDiff > 0.01) mapLevel = 2;
-            else if (maxDiff > 0.005) mapLevel = 3;
-            else if (maxDiff > 0.002) mapLevel = 4;
-            else mapLevel = 5;
+              // 마커들 사이의 거리에 따라 적절한 줌 레벨 설정
+              if (maxDiff > 0.01)
+                mapLevel = 1; // 매우 넓은 범위
+              else if (maxDiff > 0.005)
+                mapLevel = 2; // 넓은 범위
+              else if (maxDiff > 0.002)
+                mapLevel = 3; // 중간 범위
+              else if (maxDiff > 0.001)
+                mapLevel = 4; // 좁은 범위
+              else if (maxDiff > 0.0005)
+                mapLevel = 5; // 매우 좁은 범위
+              else mapLevel = 6; // 최대 확대
+            }
 
             mapCenter = { lat: centerLat, lng: centerLng };
           }
@@ -124,7 +136,7 @@ export default function MapBox({
       });
       if (ref.current) ref.current.innerHTML = '';
     };
-  }, [KAKAO_KEY, lat, lng, markers]);
+  }, [KAKAO_KEY, lat, lng, markers, zoomLevel, fitBounds]);
 
   return (
     <section className={` px-[1.5rem] ${sectionClassName}`}>
