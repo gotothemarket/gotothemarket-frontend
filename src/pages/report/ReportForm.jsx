@@ -21,6 +21,15 @@ const ReportForm = () => {
   const location = useLocation();
   const { location: selectedLocation, address, mode, storeId, initial } = location.state || {};
   const effectiveLocation = selectedLocation || initial?.coord || null;
+  
+  console.log('🔍 ReportForm에서 받은 데이터:', {
+    selectedLocation,
+    address,
+    mode,
+    storeId,
+    initial,
+    effectiveLocation,
+  });
   const KAKAO_KEY = import.meta.env.VITE_KAKAO_MAP_API_KEY;
 
   const [storeName, setStoreName] = useState(initial?.storeName || '');

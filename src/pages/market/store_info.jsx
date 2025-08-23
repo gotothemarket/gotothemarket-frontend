@@ -184,15 +184,15 @@ export default function StoreInfo() {
   };
 
   const infoRows = [
-    { label: '종류', value: store.type_name || '-' },
+    { label: '종류', value: store.type_name || '정보 없음' },
     {
       label: '영업시간',
       value:
         store.opening_hours != null && store.closing_hours != null
           ? `${formatTime(store.opening_hours)} - ${formatTime(store.closing_hours)}`
-          : '-',
+          : '정보 없음',
     },
-    { label: '연락처', value: store.phone_number || '-' },
+    { label: '연락처', value: store.phone_number || '정보 없음' },
   ];
 
   return (
@@ -237,7 +237,18 @@ export default function StoreInfo() {
       >
         <button
           onClick={handleReview}
-          className="w-full bg-primary-1000 text-white py-4 px-6 rounded-[1rem] font-semibold text-body9 h-[4.8rem]"
+          className="w-full py-4 px-6 rounded-[1rem]"
+          style={{
+            backgroundColor: '#FF9C1F',
+            color: 'white',
+            textAlign: 'center',
+            fontFamily: 'Pretendard Variable',
+            fontSize: '1.4rem',
+            fontStyle: 'normal',
+            fontWeight: 600,
+            lineHeight: 'normal',
+            height: '4.8rem',
+          }}
         >
           리뷰 남기기
         </button>

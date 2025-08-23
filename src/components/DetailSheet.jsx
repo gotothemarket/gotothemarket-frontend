@@ -101,7 +101,7 @@ export default function DetailSheet({ selected, onClose, showMap = false }) {
       )}
 
       {isStore && !storeQuery.isLoading && !storeQuery.error && storeQuery.data && (
-        <StoreDetail payload={normalizeStorePayload(storeQuery.data)} />
+        <StoreDetail payload={normalizeStorePayload(storeQuery.data)} navigate={navigate} />
       )}
 
       {isMarket && !marketQuery.isLoading && !marketQuery.error && marketQuery.data && (
@@ -114,7 +114,7 @@ export default function DetailSheet({ selected, onClose, showMap = false }) {
 /* ============================= */
 /* ========== STORE ============ */
 /* ============================= */
-function StoreDetail({ payload }) {
+function StoreDetail({ payload, navigate }) {
   const { store, photos = [] } = payload;
 
   console.log('🔍 StoreDetail payload:', payload);
@@ -126,7 +126,7 @@ function StoreDetail({ payload }) {
       label: '영업시간',
       value: `${formatHHMM(store.opening_hours)} - ${formatHHMM(store.closing_hours)}`,
     },
-    { label: '연락처', value: store.phone_number },
+    { label: '연락처', value: store.phone_number || '정보 없음' },
     { label: '주소', value: store.store_address || '정보 없음' },
   ];
 
@@ -141,19 +141,58 @@ function StoreDetail({ payload }) {
 
       <section>
         <div className="flex justify-between px-[1.5rem] pt-[2.4rem]">
-          <h3 className="text-lg font-semibold text-gray-900">가게 정보</h3>
-          <button className="text-sm text-main-1000 hover:text-main-800 transition-colors">
-            수정하기
-          </button>
+          <h3
+            style={{
+              color: '#0A0A0A',
+              fontFamily: 'Pretendard Variable',
+              fontSize: '1.6rem',
+              fontStyle: 'normal',
+              fontWeight: 600,
+              lineHeight: 'normal',
+            }}
+          >
+            가게 정보
+          </h3>
+          {/* 모달에서는 수정하기 버튼 숨김 */}
+          {/* <button
+             onClick={() => {
+               console.log('🔍 수정하기 버튼 클릭 - 전달할 데이터:', {
+                 editMode: true,
+                 storeData: store,
+                 photos: photos,
+               });
+               console.log('🔍 좌표 정보 별도 확인:', {
+                 store_coord: store.store_coord,
+                 lat: store.store_coord?.lat,
+                 lng: store.store_coord?.lng,
+                 hasCoordinates: !!store.store_coord?.lat && !!store.store_coord?.lng,
+               });
+               navigate('/report/form', {
+                 state: {
+                   editMode: true,
+                   storeData: store,
+                   photos: photos,
+                 },
+               });
+             }}
+             className="hover:opacity-80 transition-opacity"
+             style={{
+               color: '#FF9C1F',
+               textAlign: 'right',
+               fontFamily: 'Pretendard Variable',
+               fontSize: '1.2rem',
+               fontStyle: 'normal',
+               fontWeight: 600,
+               lineHeight: 'normal',
+             }}
+           >
+             수정하기
+           </button> */}
         </div>
         <InfoRows rows={rows} />
       </section>
 
-              <PhotoStrip 
-          title="가게 사진" 
-          photos={normalizePhotos(photos)} 
-          storeId={store.store_id}
-        />
+      <PhotoStrip title="가게 사진" photos={normalizePhotos(photos)} storeId={store.store_id} />
 
       {/* 시트 안에 지도를 넣고 싶으면 주석 해제
       {showMap && (
@@ -210,9 +249,9 @@ function formatHHMM(time) {
 
 function normalizePhotos(photos) {
   console.log('🔍 normalizePhotos input:', photos);
-  const normalized = photos.map((p, i) => ({ 
-    photo_id: p.photo_id ?? p.photoId ?? p.id ?? i, 
-    photo_url: p.photo_url ?? p.photoUrl ?? p.url 
+  const normalized = photos.map((p, i) => ({
+    photo_id: p.photo_id ?? p.photoId ?? p.id ?? i,
+    photo_url: p.photo_url ?? p.photoUrl ?? p.url,
   }));
   console.log('🔍 normalizePhotos output:', normalized);
   return normalized;
@@ -245,12 +284,43 @@ function normalizeStorePayload(data) {
   };
 
   const srcStore = s.store ?? s;
-  const coord = srcStore.storeCoord ??
-    srcStore.coord ??
-    srcStore.location ?? {
-      lat: srcStore.lat,
-      lng: srcStore.lng,
-    };
+  // 좌표 정보 추출 - storeCoord가 있으면 그대로 사용, 없으면 다른 필드들 확인
+  let coord;
+  if (srcStore.storeCoord && srcStore.storeCoord.lat && srcStore.storeCoord.lng) {
+    coord = srcStore.storeCoord;
+  } else if (srcStore.coord && srcStore.coord.lat && srcStore.coord.lng) {
+    coord = srcStore.coord;
+  } else if (srcStore.location && srcStore.location.lat && srcStore.location.lng) {
+    coord = srcStore.location;
+  } else if (srcStore.store_coord && srcStore.store_coord.lat && srcStore.store_coord.lng) {
+    coord = srcStore.store_coord;
+  } else if (srcStore.coordinates && srcStore.coordinates.lat && srcStore.coordinates.lng) {
+    coord = srcStore.coordinates;
+  } else {
+    // 개별 lat, lng 필드 확인
+    const lat = srcStore.lat ?? srcStore.latitude ?? srcStore.store_lat;
+    const lng = srcStore.lng ?? srcStore.longitude ?? srcStore.store_lng;
+    if (lat && lng) {
+      coord = { lat, lng };
+    } else {
+      coord = null;
+    }
+  }
+
+  console.log('🔍 좌표 정보 추출:', {
+    storeCoord: srcStore.storeCoord,
+    coord: srcStore.coord,
+    location: srcStore.location,
+    store_coord: srcStore.store_coord,
+    coordinates: srcStore.coordinates,
+    lat: srcStore.lat,
+    latitude: srcStore.latitude,
+    store_lat: srcStore.store_lat,
+    lng: srcStore.lng,
+    longitude: srcStore.longitude,
+    store_lng: srcStore.store_lng,
+    finalCoord: coord,
+  });
 
   const store = {
     store_id: srcStore.storeId ?? srcStore.id,
@@ -266,7 +336,7 @@ function normalizeStorePayload(data) {
     store_address: srcStore.storeAddress ?? srcStore.address ?? srcStore.store_address ?? '',
   };
 
-  const photos = Array.isArray(s.photos) 
+  const photos = Array.isArray(s.photos)
     ? s.photos.map((p, i) => ({
         photo_id: p.photo_id ?? p.photoId ?? p.id ?? i,
         photo_url: p.photo_url ?? p.photoUrl ?? p.url,

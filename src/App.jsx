@@ -16,7 +16,7 @@ import MyFavorite from './pages/mypage/MyFavorite';
 import MyReview from './pages/mypage/MyReview';
 import Ai from './pages/ai/Ai';
 import AiResult from './pages/ai/AiResult';
-import { MapProvider } from './contexts/MapContext';
+
 
 // 첫 방문자 감지 및 리다이렉트 컴포넌트
 const FirstVisitRedirect = () => {
@@ -44,35 +44,33 @@ const FirstVisitRedirect = () => {
 
 export default function App() {
   return (
-    <MapProvider>
-      <div>
-        <nav>
-          <Link to="/"></Link>
-        </nav>
+    <div>
+      <nav>
+        <Link to="/"></Link>
+      </nav>
 
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/onboarding/introduce" element={<Introduce />} />
-            <Route index element={<Home />} />
-            <Route path="/stores/:id" element={<StoreInfo />} />
-            <Route path="/store/:storeId/gallery" element={<StoreGallery />} />
-            <Route path="/markets/:id" element={<MarketInfo />} />
-            <Route path="/report/location" element={<ReportLocation />} />
-            <Route path="/report/form" element={<ReportForm />} />
-            <Route path="/debug" element={<MapDebugTest />} />
-            <Route path="/mypage" element={<Mypage />} />
-            <Route path="/mypage/badge" element={<MyBadge />} />
-            <Route path="/mypage/review" element={<MyReview />} />
-            <Route path="/ai" element={<Ai />} />
-            <Route path="/ai/result" element={<AiResult />} />
-            <Route path="/mypage/favorite" element={<MyFavorite />} />
-          </Route>
-        </Routes>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/onboarding/introduce" element={<Introduce />} />
+          <Route index element={<Home />} />
+          <Route path="/stores/:id" element={<StoreInfo />} />
+          <Route path="/store/:storeId/gallery" element={<StoreGallery />} />
+          <Route path="/markets/:id" element={<MarketInfo />} />
+          <Route path="/report/location" element={<ReportLocation />} />
+          <Route path="/report/form" element={<ReportForm />} />
+          <Route path="/debug" element={<MapDebugTest />} />
+          <Route path="/mypage" element={<Mypage />} />
+          <Route path="/mypage/badge" element={<MyBadge />} />
+          <Route path="/mypage/review" element={<MyReview />} />
+          <Route path="/ai" element={<Ai />} />
+          <Route path="/ai/result" element={<AiResult />} />
+          <Route path="/mypage/favorite" element={<MyFavorite />} />
+        </Route>
+      </Routes>
 
-        {/* 첫 방문자 감지 및 리다이렉트 */}
-        <FirstVisitRedirect />
-      </div>
-    </MapProvider>
+      {/* 첫 방문자 감지 및 리다이렉트 */}
+      <FirstVisitRedirect />
+    </div>
   );
 }

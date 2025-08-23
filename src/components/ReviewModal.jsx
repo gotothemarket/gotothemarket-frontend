@@ -82,7 +82,18 @@ const ReviewModal = ({ isOpen, onClose, onSubmit }) => {
         >
           {/* 헤더 */}
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-body1 text-gray-900">시장 속 보물을 찾으셨나요?</h2>
+            <h2
+              style={{
+                color: '#000',
+                fontFamily: 'Pretendard Variable',
+                fontSize: '2rem',
+                fontStyle: 'normal',
+                fontWeight: 600,
+                lineHeight: 'normal',
+              }}
+            >
+              시장 속 보물을 찾으셨나요?
+            </h2>
             <button onClick={handleClose} className="p-2 text-gray-400 hover:text-gray-600">
               <svg
                 className="w-[1.56rem] h-[1.56rem]"
@@ -107,7 +118,11 @@ const ReviewModal = ({ isOpen, onClose, onSubmit }) => {
                 <img
                   src={i < rating ? starIcon : starBlankIcon}
                   alt={`별 ${i + 1}`}
-                  className="w-8 h-8 cursor-pointer"
+                  className="cursor-pointer"
+                  style={{
+                    width: '3rem',
+                    height: '3rem',
+                  }}
                 />
               </button>
             ))}
@@ -119,11 +134,19 @@ const ReviewModal = ({ isOpen, onClose, onSubmit }) => {
               value={reviewText}
               onChange={(e) => setReviewText(e.target.value)}
               placeholder="리뷰를 작성해주세요"
-              className="w-full h-32 p-4 pr-12 text-caption4 bg-gray-50 rounded-[1rem] "
+              className="w-full h-32 p-4 pr-12 bg-gray-50 rounded-[1rem]"
               maxLength={300}
+              style={{
+                fontFamily: 'Pretendard Variable',
+                fontSize: '1.3rem',
+                fontStyle: 'normal',
+                fontWeight: 400,
+                lineHeight: 'normal',
+                color: '#000000',
+              }}
             />
             {!reviewText && (
-              <div className="absolute top-4 left-47">
+              <div className="absolute top-6 left-50">
                 <img src={reviewWriteIcon} alt="작성 아이콘" className="w-4 h-4" />
               </div>
             )}
@@ -142,6 +165,13 @@ const ReviewModal = ({ isOpen, onClose, onSubmit }) => {
                 : 'bg-secondary-600 text-white cursor-not-allowed'
             }`}
             disabled={!rating || !reviewText.trim()}
+            style={{
+              fontFamily: 'Pretendard Variable',
+              fontSize: '1.4rem',
+              fontStyle: 'normal',
+              fontWeight: 600,
+              lineHeight: 'normal',
+            }}
           >
             리뷰 남기기
           </button>

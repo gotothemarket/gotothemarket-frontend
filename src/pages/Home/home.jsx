@@ -1,6 +1,6 @@
 // /src/pages/Home.jsx
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import pinUrl from '../../assets/pin.svg';
 import marketIconUrl from '../../assets/market_icon.svg';
@@ -11,10 +11,11 @@ import BadgeModal from '../../components/BadgeModal';
 import { firstLaunchOptions } from '../../apis/apis';
 import { homeMapOptions } from '../../apis/home/api';
 import mapData from '../../mocks/map_mocks.json';
-import { useMapContext } from '../../contexts/MapContext';
 
 export const Home = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { returnLocation } = location.state || {};
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null); // 지도 객체 저장용 ref 추가
   const [category, setCategory] = useState(null);
@@ -25,9 +26,6 @@ export const Home = () => {
   const [showBadgeModal, setShowBadgeModal] = useState(false); // 뱃지 모달 상태
   const [badgeInfo, setBadgeInfo] = useState(null); // 뱃지 정보 상태
   const KAKAO_KEY = import.meta.env.VITE_KAKAO_MAP_API_KEY;
-
-  // MapContext 사용
-  const { mapState, updateMapCenter, updateMapLevel, updateMapAddress } = useMapContext();
 
   // 마커 이미지(기본/선택) 준비
   const STORE_IMG = {
@@ -221,10 +219,6 @@ export const Home = () => {
       const address = await getAddressFromCoords(lat, lng);
       setCurrentAddress(address);
       setCurrentLocation({ lat, lng });
-      // MapContext 업데이트 (저장된 주소와 다른 경우에만)
-      if (address !== mapState.address) {
-        updateMapAddress(address);
-      }
     } catch (error) {
       console.error('중앙 주소 업데이트 실패:', error);
     }
@@ -241,6 +235,25 @@ export const Home = () => {
       updateMarkers(homeData);
     }
   }, [homeData]);
+
+  // ReportLocation에서 돌아올 때 지도 위치 업데이트
+  useEffect(() => {
+    if (returnLocation && mapInstanceRef.current) {
+      console.log('🏠 홈으로 돌아옴 - 지도 위치 업데이트:', returnLocation);
+      const center = new window.kakao.maps.LatLng(returnLocation.lat, returnLocation.lng);
+      mapInstanceRef.current.setCenter(center);
+
+      // 주소도 업데이트
+      getAddressFromCoords(returnLocation.lat, returnLocation.lng)
+        .then((address) => {
+          setCurrentAddress(address);
+          setCurrentLocation(returnLocation);
+        })
+        .catch((error) => {
+          console.error('주소 업데이트 실패:', error);
+        });
+    }
+  }, [returnLocation]);
 
   // 카테고리 변경 시 선택 상태 초기화
   useEffect(() => {
@@ -262,21 +275,6 @@ export const Home = () => {
     };
   }, [currentLocation]);
 
-  // 지도가 이미 존재할 때 MapContext 상태 동기화 (한 번만)
-  useEffect(() => {
-    if (
-      mapInstanceRef.current &&
-      mapState.center.lat !== 37.4961 &&
-      !mapInstanceRef.current._stateApplied
-    ) {
-      console.log('🗺️ 기존 지도에 저장된 상태 적용:', mapState);
-      const center = new window.kakao.maps.LatLng(mapState.center.lat, mapState.center.lng);
-      mapInstanceRef.current.setCenter(center);
-      mapInstanceRef.current.setLevel(mapState.level);
-      mapInstanceRef.current._stateApplied = true;
-    }
-  }, [mapState]);
-
   useEffect(() => {
     if (!mapRef.current || !KAKAO_KEY || !homeData) return;
 
@@ -289,34 +287,34 @@ export const Home = () => {
     const newMarkers = [];
 
     loadKakaoMaps(KAKAO_KEY).then(async () => {
-      // MapContext에서 저장된 상태 사용 (초기 로드 시에만)
-      let initialLat = mapState.center.lat;
-      let initialLng = mapState.center.lng;
-      let initialAddress = mapState.address;
+      // 기본 위치 설정
+      let initialLat = 37.5665; // 서울 시청
+      let initialLng = 126.978;
+      let initialAddress = '';
 
-      // 저장된 상태가 없거나 기본값인 경우에만 현재 위치 가져오기
-      if ((initialLat === 37.4961 && initialLng === 126.98231) || !initialAddress) {
+      // 현재 위치 가져오기 시도
+      if (navigator.geolocation) {
         try {
-          if (navigator.geolocation) {
-            const position = await new Promise((resolve, reject) => {
-              navigator.geolocation.getCurrentPosition(resolve, reject, {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 60000,
-              });
+          const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 60000,
             });
+          });
 
-            initialLat = position.coords.latitude;
-            initialLng = position.coords.longitude;
-          }
-        } catch (error) {}
+          initialLat = position.coords.latitude;
+          initialLng = position.coords.longitude;
+        } catch (error) {
+          console.log('현재 위치 가져오기 실패, 기본 위치 사용');
+        }
       }
 
       // 지도 생성 (현재 위치 또는 기본 위치)
       const { map } = createMap(mapRef.current, {
         lat: initialLat,
         lng: initialLng,
-        level: mapState.level, // 저장된 줌 레벨 사용
+        level: 3, // 기본 줌 레벨
       });
 
       // 확대/축소 범위 설정 (레벨 1-14)
@@ -341,10 +339,8 @@ export const Home = () => {
 
       mapInstanceRef.current = map; // 지도 객체를 ref에 저장
 
-      // 지도 상태가 저장된 상태라면 플래그 설정
-      if (mapState.center.lat !== 37.4961 || mapState.center.lng !== 126.98231) {
-        map._stateApplied = true;
-      }
+      // 전역 변수에 지도 객체 저장 (Navbar에서 접근용)
+      window.currentHomeMap = map;
 
       // 정리 함수에서 사용할 수 있도록 handleWheel을 저장
       mapRef.current._handleWheel = handleWheel;
@@ -359,43 +355,23 @@ export const Home = () => {
         initialAddress = await getAddressFromCoords(initialLat, initialLng);
         setCurrentAddress(initialAddress);
         setCurrentLocation({ lat: initialLat, lng: initialLng });
-        // MapContext 업데이트 (저장된 주소와 다른 경우에만)
-        if (initialAddress !== mapState.address) {
-          updateMapAddress(initialAddress);
-        }
       } catch (error) {
         setCurrentAddress(mapData.data.road_address); // 기본값으로 fallback
         setCurrentLocation({ lat: initialLat, lng: initialLng });
-        // MapContext 업데이트 (저장된 주소와 다른 경우에만)
-        if (mapData.data.road_address !== mapState.address) {
-          updateMapAddress(mapData.data.road_address);
-        }
       }
 
       // 지도 이동 이벤트 리스너 추가 (한 번만)
       if (!map._hasEventListeners) {
         window.kakao.maps.event.addListener(map, 'dragend', () => {
           updateCenterAddress(map);
-          // MapContext 업데이트 (실제 변경된 경우에만)
-          const center = map.getCenter();
-          const newLat = center.getLat();
-          const newLng = center.getLng();
-
-          if (
-            Math.abs(newLat - mapState.center.lat) > 0.0001 ||
-            Math.abs(newLng - mapState.center.lng) > 0.0001
-          ) {
-            updateMapCenter(newLat, newLng);
-          }
+          // 전역 변수 업데이트
+          window.currentHomeMap = map;
         });
 
         window.kakao.maps.event.addListener(map, 'zoom_changed', () => {
           updateCenterAddress(map);
-          // MapContext 업데이트 (실제 변경된 경우에만)
-          const newLevel = map.getLevel();
-          if (newLevel !== mapState.level) {
-            updateMapLevel(newLevel);
-          }
+          // 전역 변수 업데이트
+          window.currentHomeMap = map;
         });
 
         map._hasEventListeners = true;
@@ -464,6 +440,11 @@ export const Home = () => {
         mapRef.current.removeEventListener('wheel', mapRef.current._handleWheel);
         delete mapRef.current._handleWheel;
       }
+
+      // 전역 변수 정리
+      if (window.currentHomeMap === mapInstanceRef.current) {
+        delete window.currentHomeMap;
+      }
     };
   }, [KAKAO_KEY, homeData]);
 
@@ -488,9 +469,6 @@ export const Home = () => {
           try {
             const address = await getAddressFromCoords(lat, lng);
             setCurrentAddress(address);
-            // MapContext 업데이트
-            updateMapCenter(lat, lng);
-            updateMapAddress(address);
           } catch (error) {
             console.error('현재 위치 주소 변환 실패:', error);
           }
@@ -531,26 +509,43 @@ export const Home = () => {
       {/* 상세 바텀시트 */}
       <DetailSheet selected={selected} onClose={handleCloseDetailSheet} />
 
-      {/* 하단 박스 */}
-      <div
-        className="absolute bottom-[8.3rem] left-1/2 -translate-x-1/2 z-10 flex py-[1.4rem] px-[2rem] justify-center items-center gap-2 rounded-3xl border border-[#FF661F] bg-[#FEFEFE] shadow-[0.5px_4px_7px_0_rgba(255,102,31,0.80)] cursor-pointer hover:bg-orange-50 transition-colors"
-        onClick={() => {
-          // MapContext에서 현재 지도 상태를 가져와서 전달
-          console.log('🚀 AI 코스 추천 버튼 클릭!');
-          console.log('📍 현재 지도 중심 좌표:', mapState.center);
-          console.log('🗺️ 지도 상태:', mapState);
+      {/* 하단 박스들 */}
+      <div className="absolute bottom-[8.3rem] left-1/2 -translate-x-1/2 z-10 flex flex-col gap-3">
+        {/* AI 코스 추천 버튼 */}
+        <div
+          className="flex py-[1.4rem] px-[2rem] justify-center items-center gap-2 rounded-3xl border border-[#FF661F] bg-[#FEFEFE] shadow-[0.5px_4px_7px_0_rgba(255,102,31,0.80)] cursor-pointer hover:bg-orange-50 transition-colors"
+          onClick={() => {
+            // 현재 지도 상태를 가져와서 전달
+            console.log('🚀 AI 코스 추천 버튼 클릭!');
 
-          navigate('/ai', {
-            state: {
-              centerLat: mapState.center.lat,
-              centerLng: mapState.center.lng,
-            },
-          });
-        }}
-      >
-        <span className="text-center text-[#FF661F] text-[1.4rem] font-semibold leading-none">
-          ⛳ AI 코스 추천
-        </span>
+            if (mapInstanceRef.current) {
+              const center = mapInstanceRef.current.getCenter();
+              const currentLat = center.getLat();
+              const currentLng = center.getLng();
+
+              console.log('📍 현재 지도 중심 좌표:', { lat: currentLat, lng: currentLng });
+
+              navigate('/ai', {
+                state: {
+                  centerLat: currentLat,
+                  centerLng: currentLng,
+                },
+              });
+            } else {
+              // 지도가 아직 생성되지 않은 경우 기본값 사용
+              navigate('/ai', {
+                state: {
+                  centerLat: 37.5665,
+                  centerLng: 126.978,
+                },
+              });
+            }
+          }}
+        >
+          <span className="text-center text-[#FF661F] text-[1.4rem] font-semibold leading-none">
+            ⛳ AI 코스 추천
+          </span>
+        </div>
       </div>
 
       {/* 뱃지 모달 */}

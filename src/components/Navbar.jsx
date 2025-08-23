@@ -5,12 +5,10 @@ import writeIcon from '../assets/write_active.svg';
 import writeInactiveIcon from '../assets/write_default.svg';
 import profileActiveIcon from '../assets/profile_active.svg';
 import profileInactiveIcon from '../assets/profile_default.svg';
-import { useMapContext } from '../contexts/MapContext';
 
 export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { mapState } = useMapContext();
 
   // Navbar 표시 경로: 홈, 마이페이지
   const visiblePaths = ['/', '/mypage'];
@@ -21,13 +19,59 @@ export default function Navbar() {
   const isMypage = location.pathname === '/mypage';
 
   const handleReportClick = () => {
-    // MapContext에서 현재 지도 상태를 가져와서 전달
-    navigate('/report/location', {
-      state: {
-        initialLocation: mapState.center,
-        initialAddress: mapState.address,
-      },
-    });
+    // 홈에서 현재 지도 상태를 가져와서 전달
+    if (location.pathname === '/') {
+      // 홈 페이지에서만 지도 상태 가져오기
+      const mapContainer = document.querySelector('[data-address]');
+      if (mapContainer) {
+        const address = mapContainer.textContent;
+        
+        // 전역 변수에서 홈의 지도 객체 가져오기
+        let currentLocation = null;
+        
+        if (window.currentHomeMap && window.kakao && window.kakao.maps) {
+          try {
+            const center = window.currentHomeMap.getCenter();
+            currentLocation = {
+              lat: center.getLat(),
+              lng: center.getLng()
+            };
+            console.log('📍 홈에서 현재 지도 중심 좌표 가져옴:', currentLocation);
+          } catch (error) {
+            console.error('지도 중심 좌표 가져오기 실패:', error);
+          }
+        }
+        
+        // 기본값 설정 (지도 객체를 찾을 수 없는 경우)
+        if (!currentLocation) {
+          currentLocation = { lat: 37.5665, lng: 126.978 };
+          console.log('📍 기본 좌표 사용:', currentLocation);
+        }
+        
+        navigate('/report/location', {
+          state: {
+            initialLocation: currentLocation,
+            initialAddress: address,
+          },
+        });
+      } else {
+        // 주소를 찾을 수 없는 경우 기본값으로 이동
+        navigate('/report/location', {
+          state: {
+            initialLocation: { lat: 37.5665, lng: 126.978 },
+            initialAddress: '서울특별시 중구 세종대로 110',
+          },
+        });
+      }
+    } else {
+      // 마이페이지에서는 기본값으로 이동
+      navigate('/report/location', {
+        state: {
+          initialLocation: { lat: 37.5665, lng: 126.978 },
+          initialAddress: '서울특별시 중구 세종대로 110',
+        },
+      });
+    }
   };
 
   return (
