@@ -3,11 +3,15 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import Header from '../../components/Header'
 import MapBox from '../market/components/MapBox'
 import closeIcon from '../../assets/close_icon.svg'
-import produceIcon from '../../assets/과일야채.svg'
-import seafoodIcon from '../../assets/수산.svg'
-import meatIcon from '../../assets/축산.svg'
-import restaurantIcon from '../../assets/요리.svg'
-import arrowOrangeIcon from '../../assets/arrow_orange.svg'
+import 과일야채 from '../../assets/과일야채.svg';
+import 수산 from '../../assets/수산.svg';
+import 축산 from '../../assets/축산.svg';
+import 요리 from '../../assets/요리.svg';
+import 의류 from '../../assets/의류.svg';
+import 잡화 from '../../assets/잡화.svg';
+import 빵떡 from '../../assets/빵떡.svg';
+import 길거리음식 from '../../assets/길거리.svg';
+import arrowOrangeIcon from '../../assets/arrow_orange.svg';
 
 const AiResult = () => {
   const location = useLocation();
@@ -22,11 +26,11 @@ const AiResult = () => {
       1: '과일·야채',
       2: '수산',
       3: '식당',
-      4: '의류',
+      4: '빵·떡',
       5: '잡화',
-      6: '축산',
-      7: '길거리음식',
-      8: '빵/떡',
+      6: '길거리음식',
+      7: '축산',
+      8: '의류',
     };
     return categoryMap[storeType] || '기타';
   };
@@ -34,16 +38,16 @@ const AiResult = () => {
   // store_type을 카테고리 아이콘으로 변환
   const getCategoryIcon = (storeType) => {
     const iconMap = {
-      1: produceIcon,
-      2: seafoodIcon,
-      3: restaurantIcon,
-      4: restaurantIcon, // 의류 아이콘이 없어서 임시로 요리 아이콘 사용
-      5: produceIcon, // 잡화 아이콘이 없어서 임시로 과일야채 아이콘 사용
-      6: meatIcon,
-      7: restaurantIcon, // 길거리음식 아이콘이 없어서 임시로 요리 아이콘 사용
-      8: produceIcon, // 빵떡 아이콘이 없어서 임시로 과일야채 아이콘 사용
+      1: 과일야채,
+      2: 수산,
+      3: 요리,
+      4: 빵떡,
+      5: 잡화,
+      6: 길거리음식,
+      7: 축산,
+      8: 의류,
     };
-    return iconMap[storeType] || produceIcon;
+    return iconMap[storeType] || 과일야채;
   };
 
   // API 응답 데이터에서 코스 정보 추출
@@ -274,6 +278,6 @@ const AiResult = () => {
       </div>
     </div>
   );
-}
+};
 
 export default AiResult
