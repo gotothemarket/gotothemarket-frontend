@@ -255,11 +255,11 @@ const Ai = () => {
       produce: 1,
       seafood: 2,
       restaurant: 3,
-      clothing: 4,
+      bakery: 4,
       misc: 5,
-      meat: 6,
-      street: 7,
-      bakery: 8,
+      street: 6,
+      meat: 7,
+      clothing: 8,
     };
     return categoryMap[categoryId] || 1;
   };

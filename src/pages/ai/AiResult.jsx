@@ -156,6 +156,7 @@ const AiResult = () => {
                       title=""
                       lat={centerLat || 37.5665}
                       lng={centerLng || 126.978}
+                      markers={responseData?.data?.courses || []}
                       className="h-[18.5rem] aspect-[317.01/185.00]"
                       sectionClassName="pb-[3rem] pt-[-1rem]"
                     />
