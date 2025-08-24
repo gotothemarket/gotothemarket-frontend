@@ -29,6 +29,9 @@ const Onboarding = () => {
     >
       <img src={logo} alt="logo" className="w-[15.7286rem] h-[15.7286rem]" />
       <img src={title} alt="title" />
+      <div className="mt-[1.7rem] text-center text-[2rem] font-medium leading-[2.5rem]">
+        발견의 즐거움이 있는 전통시장 탐험
+      </div>
     </div>
   );
 };

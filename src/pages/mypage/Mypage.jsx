@@ -29,7 +29,9 @@ const Mypage = () => {
   const { data: favoritesData, isLoading: favoritesLoading } = useQuery(favoritesOptions());
 
   // 리뷰 데이터 가져오기
-  const { data: reviewsData, isLoading: reviewsLoading } = useQuery(myReviewsOptions());
+  const { data: reviewsData, isLoading: reviewsLoading } = useQuery(
+    myReviewsOptions({ size: 10000 }),
+  );
 
   // 디버깅을 위한 콘솔 로그
   console.log('API 응답 전체 데이터:', mypageData);

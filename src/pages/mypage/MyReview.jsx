@@ -22,7 +22,7 @@ const MyReview = () => {
   const navigate = useNavigate();
   
   // 리뷰 데이터 가져오기
-  const { data: reviewsData, isLoading, error } = useQuery(myReviewsOptions());
+  const { data: reviewsData, isLoading, error } = useQuery(myReviewsOptions({ size: 10000 }));
   
   const reviews = reviewsData?.data?.reviews || [];
 

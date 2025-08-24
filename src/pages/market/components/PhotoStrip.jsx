@@ -1,7 +1,8 @@
 // components/PhotoStrip.jsx
 import { useNavigate } from 'react-router-dom';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
+import { createPortal } from 'react-dom';
 import { queryClient } from '../../../apis/queryClient';
 import { k } from '../../../apis/queryKeys';
 import { uploadPhotoOptions } from '../../../apis/apis';
@@ -16,11 +17,26 @@ export default function PhotoStrip({
 }) {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
 
   const handleViewMore = () => {
     if (storeId) {
       navigate(`/store/${storeId}/gallery`);
     }
+  };
+
+  const handlePhotoClick = (photo, index) => {
+    if (isMarket) {
+      // 시장 사진일 때는 확대 모달 표시
+      setSelectedPhoto({ ...photo, index });
+    } else if (index === 3) {
+      // 가게 사진일 때는 4번째 사진 클릭 시 더보기
+      handleViewMore();
+    }
+  };
+
+  const closePhotoModal = () => {
+    setSelectedPhoto(null);
   };
 
   // 업로드 UI는 storeId가 준비된 뒤에만 렌더링되도록 별도 컴포넌트 사용
@@ -56,7 +72,7 @@ export default function PhotoStrip({
               key={p.photo_id ?? idx}
               className="flex-1 rounded-lg overflow-hidden relative cursor-pointer"
               style={{ height: '6.6rem' }}
-              onClick={!isMarket && idx === 3 ? handleViewMore : undefined}
+              onClick={() => handlePhotoClick(p, idx)}
             >
               <img
                 src={p.photo_url}
@@ -83,6 +99,10 @@ export default function PhotoStrip({
           )}
         </div>
       )}
+
+      {/* 사진 확대 모달 */}
+      {selectedPhoto &&
+        createPortal(<PhotoModal photo={selectedPhoto} onClose={closePhotoModal} />, document.body)}
     </section>
   );
 }
@@ -158,5 +178,35 @@ function PhotoUploader({ storeId, ctaLabel }) {
         {uploadMutation.isPending ? '업로드 중...' : ctaLabel || '사진 제보하기'}
       </button>
     </>
+  );
+}
+
+// 사진 확대 모달 컴포넌트
+function PhotoModal({ photo, onClose }) {
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] p-4"
+      onClick={handleBackdropClick}
+    >
+      <div className="relative w-full max-w-[430px] flex items-center justify-center">
+        <img
+          src={photo.photo_url}
+          alt={`확대된 사진`}
+          className="w-full h-auto max-h-[90vh] object-contain"
+        />
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 text-white text-2xl hover:text-gray-300 transition-colors z-10 bg-black/50 rounded-full w-8 h-8 flex items-center justify-center"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
   );
 }

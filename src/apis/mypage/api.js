@@ -44,7 +44,8 @@ export const deleteFavoriteOptions = (storeId) => ({
 export const myReviewsOptions = (filters = {}) =>
   createQueryOptions({
     queryKey: k.mypage.reviews(filters),
-    queryFn: ({ signal }) => apiGet('/api/mypage/review?memberId=1', { signal, params: filters }),
+    queryFn: ({ signal }) =>
+      apiGet('/api/mypage/review?memberId=1&size=1000', { signal, params: filters }),
   });
 
 export const myBadgesOptions = () =>

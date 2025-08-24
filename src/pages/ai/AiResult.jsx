@@ -157,10 +157,10 @@ const AiResult = () => {
                       lat={centerLat || 37.5665}
                       lng={centerLng || 126.978}
                       markers={responseData?.data?.courses || []}
-                      className="h-[18.5rem] aspect-[317.01/185.00]"
+                      className="h-[25rem] aspect-[317.01/250.00]"
                       sectionClassName="pb-[3rem] pt-[-1rem]"
-                      zoomLevel={6}
-                      fitBounds={true}
+                      zoomLevel={1}
+                      fitBounds={false}
                     />
 
                     {/* 코스 리스트 */}
