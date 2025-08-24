@@ -21,6 +21,9 @@ const Ai = () => {
   const [storeSets, setStoreSets] = useState([]); // 최대 4개까지 저장
   const [currentSetIndex, setCurrentSetIndex] = useState(0); // 현재 선택 중인 세트 인덱스
   const [showAiResult, setShowAiResult] = useState(false); // AiResult 모달 표시 여부
+  const displayStep = Math.min(storeSets.length + 1, 4);
+  const MAX_SETS = 4;
+  const [locked, setLocked] = useState(false);
 
   // 전달받은 좌표
   const centerLat = location.state?.centerLat || 37.4961;
@@ -88,7 +91,7 @@ const Ai = () => {
       console.log('📊 키워드 API 응답 데이터:', data);
       return data;
     },
-    enabled: !!selectedCategory,
+    enabled: !!selectedCategory && !locked,
     staleTime: 5 * 60 * 1000, // 5분
   });
 
@@ -217,6 +220,7 @@ const Ai = () => {
   };
 
   const handleCategorySelect = (categoryId) => {
+    if (locked) return;
     setSelectedCategory(categoryId);
     setSelectedConditions([]); // 카테고리 변경 시 선택된 조건 초기화
   };
@@ -236,16 +240,22 @@ const Ai = () => {
   };
 
   const handleAddStore = () => {
+    if (locked || storeSets.length >= MAX_SETS) return;
     if (selectedCategory && selectedConditions.length > 0) {
       const newSet = {
         store_type: getStoreTypeId(selectedCategory),
         keywords: getSelectedConditionLabels(selectedConditions),
       };
-
-      setStoreSets((prev) => [...prev, newSet]);
+      setStoreSets((prev) => {
+        const updated = [...prev, newSet];
+        if (updated.length >= MAX_SETS) {
+          setLocked(true);
+        }
+        return updated;
+      });
       setSelectedCategory(null);
       setSelectedConditions([]);
-      setCurrentSetIndex((prev) => prev + 1);
+      
     }
   };
 
@@ -336,7 +346,7 @@ const Ai = () => {
   };
 
   const categoryData = getSelectedCategoryData();
-  const canAddMore = storeSets.length < 4;
+  const canAddMore = !locked && storeSets.length < MAX_SETS;
 
   return (
     <>
@@ -412,8 +422,8 @@ const Ai = () => {
                     label={category.label}
                     icon={category.icon}
                     isSelected={selectedCategory === category.id}
-                    onClick={handleCategorySelect}
-                    className="h-[4rem]"
+                    onClick={!locked ? handleCategorySelect : undefined}
+                    className={`h-[4rem] ${locked ? 'opacity-50 pointer-events-none' : ''}`}
                   />
                 ))}
               </div>
@@ -498,12 +508,13 @@ const Ai = () => {
                         {group.keywords.map((keyword) => (
                           <button
                             key={keyword.code}
-                            onClick={() => handleConditionToggle(keyword.code)}
+                            onClick={!locked ? () => handleConditionToggle(keyword.code) : undefined}
+                            disabled={locked}
                             className={`w-auto rounded-[1.2rem] p-[0.2rem_1.6rem] text-[1.4rem] font-medium transition-colors ${
                               selectedConditions.includes(keyword.code)
                                 ? 'border-2 border-dotted border-primary-1000'
                                 : ''
-                            }`}
+                            } ${locked ? 'opacity-40 pointer-events-none' : ''}`}
                             style={{
                               color: '#0A0A0A',
                               fontFamily: 'Pretendard Variable',
@@ -563,7 +574,7 @@ const Ai = () => {
                       lineHeight: 'normal',
                     }}
                   >
-                    {storeSets.length}
+                    {displayStep}
                   </span>
                   <span
                     style={{
