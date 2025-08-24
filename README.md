@@ -1,58 +1,24 @@
-# Go To Market
+# 시장에가면
 
-React + Vite 기반의 시장 정보 및 리뷰 플랫폼
+<a href="www.gotothemarket.site" target="_blank">
+<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/13acd2dd-1ab7-45f9-89e3-35385a94966f" />
+</a>
 
-## 환경 설정
+<br/>
+<br/>
 
-### API 설정
+# 1. Project Overview (프로젝트 개요)
 
-프로젝트는 환경에 따라 다른 API URL을 사용합니다:
+- 프로젝트 이름: 발견의 즐거움이 있는 전통시장 탐험, 시장에가면
+- 프로젝트 설명: 전통시장의 가게들을 제보하고 후기를 남기며 공유하는 모두를 위한 전통시장 커뮤니티
 
-- **개발 환경**: `http://localhost:5173`
-- **배포 환경**: `https://api.gotothemarket.site`
+<br/>
+<br/>
 
-### 환경변수 설정
+# 2. Team Members (팀원 및 팀 소개)
 
-프로젝트 루트에 `.env` 파일을 생성하고 다음 내용을 추가하세요:
-
-```bash
-# API Base URL
-VITE_API_BASE_URL=https://api.gotothemarket.site
-
-# 환경 설정
-NODE_ENV=production
-VITE_MODE=production
-```
-
-### 빌드 및 배포
-
-```bash
-# 개발 서버 실행
-npm run dev
-
-# 프로덕션 빌드
-npm run build
-
-# 프로덕션 빌드 미리보기
-npm run preview
-```
-
-## 프로젝트 구조
-
-```
-src/
-├── apis/           # API 관련 설정 및 함수들
-│   ├── client.js   # HTTP 클라이언트
-│   ├── apis.js     # API 엔드포인트 정의
-│   └── config/     # API 설정 관리
-├── components/      # 재사용 가능한 컴포넌트
-├── pages/          # 페이지 컴포넌트
-└── ...
-```
-
-## API 연동 구조
-
-1. **client.js**: HTTP 메서드 (GET, POST, PATCH, DELETE) 제공
-2. **apis.js**: 각 API 엔드포인트별 쿼리/뮤테이션 옵션 정의
-3. **config/api.js**: 환경별 API 설정 관리
-4. **queryClient.js**: React Query 클라이언트 설정
+|                                                        금민우                                                        |                                                        이연우                                                        |                                                        양예원                                                        |                                                        문근                                                        | 최원재                                                                                                               |
+| :------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------: | -------------------------------------------------------------------------------------------------------------------- |
+| <img src="https://github.com/user-attachments/assets/c1c2b1e3-656d-4712-98ab-a15e91efa2da" alt="금민우" width="150"> | <img src="https://github.com/user-attachments/assets/78ec4937-81bb-4637-975d-631eb3c4601e" alt="이연우" width="150"> | <img src="https://github.com/user-attachments/assets/78ce1062-80a0-4edb-bf6b-5efac9dd992e" alt="양예원" width="150"> | <img src="https://github.com/user-attachments/assets/beea8c64-19de-4d91-955f-ed24b813a638" alt="문근" width="150"> | <img src="https://github.com/user-attachments/assets/beea8c64-19de-4d91-955f-ed24b813a638" alt="최원재" width="150"> |
+|                                                          PM                                                          |                                                          DE                                                          |                                                          FE                                                          |                                                         BE                                                         | BE                                                                                                                   |
+|                                                    [GitHub](...)                                                     |                                                    [GitHub](...)                                                     |                                         [GitHub](https://github.com/eohneey)                                         |                                       [GitHub](https://github.com/geunmoon)                                        | [GitHub](https://github.com/1jae2jae3jae)                                                                            |
