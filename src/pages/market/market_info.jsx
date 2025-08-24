@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { createPortal } from 'react-dom';
 
 import PageHeader from './components/PageHeader';
 import EntityHeader from './components/EntityHeader';
@@ -15,6 +16,7 @@ import leftArrowWhite from '../../assets/left_arrow_white.svg';
 export default function MarketInfo() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [selectedEventImage, setSelectedEventImage] = useState(null);
 
   const { data, isLoading, error } = useQuery(marketDetailOptions(id));
 
@@ -62,6 +64,14 @@ export default function MarketInfo() {
     if (!el) return;
     const width = el.clientWidth;
     el.scrollTo({ left: width * i, behavior: 'smooth' });
+  };
+
+  const handleEventImageClick = (imageUrl, index) => {
+    setSelectedEventImage({ url: imageUrl, index });
+  };
+
+  const closeEventImageModal = () => {
+    setSelectedEventImage(null);
   };
 
   if (isLoading) {
@@ -116,7 +126,7 @@ export default function MarketInfo() {
         {Array.isArray(eventImages) && eventImages.length > 0 && (
           <section className="mt-6">
             <div className="px-[1.5rem]">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">행사 정보</h3>
+              <h3 className="text-[1.6rem] font-semibold leading-normal mb-[1.5rem]">행사 정보</h3>
             </div>
             <div className="px-[1.5rem]">
               {/* Scrollable carousel */}
@@ -128,7 +138,8 @@ export default function MarketInfo() {
                 {eventImages.map((url, i) => (
                   <div
                     key={i}
-                    className="shrink-0 basis-full h-[14.6rem] rounded-[2rem] overflow-hidden bg-gray-100 snap-center mr-0"
+                    className="shrink-0 basis-full h-[14.6rem] rounded-[2rem] overflow-hidden bg-gray-100 snap-center mr-0 cursor-pointer"
+                    onClick={() => handleEventImageClick(url, i)}
                   >
                     <img
                       src={url}
@@ -153,6 +164,43 @@ export default function MarketInfo() {
             </div>
           </section>
         )}
+      </div>
+
+      {/* 행사 이미지 확대 모달 */}
+      {selectedEventImage &&
+        createPortal(
+          <EventImageModal image={selectedEventImage} onClose={closeEventImageModal} />,
+          document.body,
+        )}
+    </div>
+  );
+}
+
+// 행사 이미지 확대 모달 컴포넌트
+function EventImageModal({ image, onClose }) {
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] p-4"
+      onClick={handleBackdropClick}
+    >
+      <div className="relative w-full max-w-[430px] flex items-center justify-center max-h-full overflow-y-auto">
+        <img
+          src={image.url}
+          alt={`확대된 행사 이미지 ${image.index + 1}`}
+          className="w-full h-auto object-contain"
+        />
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 text-white text-2xl hover:text-gray-300 transition-colors z-10 bg-black/50 rounded-full w-8 h-8 flex items-center justify-center"
+        >
+          ✕
+        </button>
       </div>
     </div>
   );
