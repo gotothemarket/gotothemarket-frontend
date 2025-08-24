@@ -287,28 +287,10 @@ export const Home = () => {
     const newMarkers = [];
 
     loadKakaoMaps(KAKAO_KEY).then(async () => {
-      // 기본 위치 설정
-      let initialLat = 37.5665; // 서울 시청
+      // 목업 첫 위치 설정
+      let initialLat = 37.5665;
       let initialLng = 126.978;
-      let initialAddress = '';
-
-      // 현재 위치 가져오기 시도
-      if (navigator.geolocation) {
-        try {
-          const position = await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-              enableHighAccuracy: true,
-              timeout: 10000,
-              maximumAge: 60000,
-            });
-          });
-
-          initialLat = position.coords.latitude;
-          initialLng = position.coords.longitude;
-        } catch (error) {
-          console.log('현재 위치 가져오기 실패, 기본 위치 사용');
-        }
-      }
+      let initialAddress = ''
 
       // 지도 생성 (현재 위치 또는 기본 위치)
       const { map } = createMap(mapRef.current, {
