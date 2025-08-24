@@ -44,7 +44,7 @@ export default function Navbar() {
         
         // 기본값 설정 (지도 객체를 찾을 수 없는 경우)
         if (!currentLocation) {
-          currentLocation = { lat: 37.5665, lng: 126.978 };
+          currentLocation = { lat: 37.4976451, lng: 126.9527737 };
           console.log('📍 기본 좌표 사용:', currentLocation);
         }
         
@@ -58,7 +58,7 @@ export default function Navbar() {
         // 주소를 찾을 수 없는 경우 기본값으로 이동
         navigate('/report/location', {
           state: {
-            initialLocation: { lat: 37.5665, lng: 126.978 },
+            initialLocation: { lat: 37.4976451, lng: 126.9527737 },
             initialAddress: '서울특별시 중구 세종대로 110',
           },
         });
@@ -67,7 +67,7 @@ export default function Navbar() {
       // 마이페이지에서는 기본값으로 이동
       navigate('/report/location', {
         state: {
-          initialLocation: { lat: 37.5665, lng: 126.978 },
+          initialLocation: { lat: 37.4976451, lng: 126.9527737 },
           initialAddress: '서울특별시 중구 세종대로 110',
         },
       });

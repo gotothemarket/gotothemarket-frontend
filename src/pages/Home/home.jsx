@@ -288,8 +288,8 @@ export const Home = () => {
 
     loadKakaoMaps(KAKAO_KEY).then(async () => {
       // 목업 첫 위치 설정
-      let initialLat = 37.5665;
-      let initialLng = 126.978;
+      let initialLat = 37.4976451;
+      let initialLng = 126.9527737;
       let initialAddress = ''
 
       // 지도 생성 (현재 위치 또는 기본 위치)
@@ -517,8 +517,8 @@ export const Home = () => {
               // 지도가 아직 생성되지 않은 경우 기본값 사용
               navigate('/ai', {
                 state: {
-                  centerLat: 37.5665,
-                  centerLng: 126.978,
+                  centerLat: 37.4976451,
+                  centerLng: 126.9527737,
                 },
               });
             }

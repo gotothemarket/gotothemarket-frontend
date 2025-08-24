@@ -154,8 +154,8 @@ const AiResult = () => {
                   <div className="px-[1rem]">
                     <MapBox
                       title=""
-                      lat={centerLat || 37.5665}
-                      lng={centerLng || 126.978}
+                      lat={centerLat || 37.4976451}
+                      lng={centerLng || 126.9527737}
                       markers={responseData?.data?.courses || []}
                       className="h-[25rem] aspect-[317.01/250.00]"
                       sectionClassName="pb-[3rem] pt-[-1rem]"

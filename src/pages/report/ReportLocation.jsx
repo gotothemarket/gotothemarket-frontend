@@ -45,8 +45,8 @@ const ReportLocation = () => {
         console.log('✅ 카카오맵 로딩 완료');
 
         // 초기 위치 설정 (전달받은 위치 우선, 기본 위치 순)
-        const initialLat = initialLocation?.lat || 37.5665;
-        const initialLng = initialLocation?.lng || 126.978;
+        const initialLat = initialLocation?.lat || 37.4976451;
+        const initialLng = initialLocation?.lng || 126.9527737;
 
         console.log('🗺️ ReportLocation 지도 초기화:', {
           initialLocation,
