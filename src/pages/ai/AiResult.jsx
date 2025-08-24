@@ -159,7 +159,7 @@ const AiResult = () => {
                       markers={responseData?.data?.courses || []}
                       className="h-[25rem] aspect-[317.01/250.00]"
                       sectionClassName="pb-[3rem] pt-[-1rem]"
-                      zoomLevel={3}
+                      zoomLevel={2}
                       fitBounds={false}
                     />
 
