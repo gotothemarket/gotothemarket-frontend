@@ -99,7 +99,15 @@ const Mypage = () => {
           >
             {profile.badges?.[0] && <Pill>{profile.badges[0].badge_name}</Pill>}
           </div>
-          <div className="text-[2.4rem] font-semibold">{profile.nickname}</div>
+          <div className="
+            font-semibold
+            text-white
+            text-[clamp(1.8rem,2.2vw,2.4rem)]
+            max-w-[18rem] sm:max-w-[22rem] md:max-w-[26rem]
+            whitespace-nowrap overflow-hidden text-ellipsis
+          ">
+            {profile.nickname}
+          </div>
         </div>
 
         <div className="mt-[2.4rem] flex flex-col gap-[3rem]">
@@ -153,12 +161,12 @@ const Mypage = () => {
                   />
                 </div>
                 <div className="mt-[0.4rem] w-full text-center">
-                  <div className="inline-block max-w-[90%] bg-[#2E2E2E] px-7 py-[0.6rem] rounded-[3rem] mx-auto">
-                    <span className="block overflow-hidden whitespace-nowrap text-ellipsis text-[1.6rem] text-body-medium">
-                      {fav.storeName}
-                    </span>
-                  </div>
+                <div className="inline-block max-w-[90%] bg-[#2E2E2E] px-7 py-[0.6rem] rounded-[3rem] mx-auto">
+                  <span className="block overflow-hidden whitespace-nowrap text-ellipsis text-[1.6rem] text-body-medium">
+                    {fav.storeName}
+                  </span>
                 </div>
+              </div>
               </div>
             ))
           ) : (
