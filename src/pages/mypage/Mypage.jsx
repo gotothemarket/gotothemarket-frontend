@@ -152,8 +152,12 @@ const Mypage = () => {
                     className="w-[5rem] h-[5rem] object-cover"
                   />
                 </div>
-                <div className="mt-[0.4rem] w-[10.8rem] text-center bg-[#2E2E2E] py-[0.5rem] text-[1.6rem] text-body-medium rounded-[3rem]">
-                  {fav.storeName}
+                <div className="mt-[0.4rem] w-full text-center">
+                  <div className="inline-block max-w-[90%] bg-[#2E2E2E] px-7 py-[0.6rem] rounded-[3rem] mx-auto">
+                    <span className="block overflow-hidden whitespace-nowrap text-ellipsis text-[1.6rem] text-body-medium">
+                      {fav.storeName}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))
@@ -194,8 +198,12 @@ const Mypage = () => {
                 <div className="w-full text-center mt-[0.6rem] text-white text-[1.2rem] font-normal leading-[1.4rem] h-[5rem] overflow-hidden px-[0.4rem]">
                   {rv.content.length > 27 ? `${rv.content.slice(0, 27)}...` : rv.content}
                 </div>
-                <div className="mt-[0.4rem] w-[10.8rem] text-center bg-[#2E2E2E] py-[0.5rem] text-[1.6rem] text-body-medium rounded-[3rem]">
-                  {rv.store_name}
+                <div className="mt-[0.4rem] w-full text-center">
+                  <div className="inline-block max-w-[90%] bg-[#2E2E2E] px-7 py-[0.6rem] rounded-[3rem] mx-auto">
+                    <span className="block overflow-hidden whitespace-nowrap text-ellipsis text-[1.6rem] text-body-medium">
+                      {rv.store_name}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))

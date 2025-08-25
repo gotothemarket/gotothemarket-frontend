@@ -12,8 +12,12 @@ const ReviewCard = ({ review, onClick }) => (
     <div className="w-full text-center mt-[0.6rem] text-white text-[1.2rem] font-normal leading-[1.4rem] h-[5rem] overflow-hidden px-[0.4rem]">
       {review.content.length > 27 ? `${review.content.slice(0, 27)}...` : review.content}
     </div>
-    <div className="mt-[0.4rem] w-full max-w-[10.8rem] text-center bg-[#2E2E2E] py-[0.5rem] text-[1.6rem] text-body-medium rounded-[3rem]">
-      {review.store_name}
+    <div className="mt-[0.4rem] text-center">
+      <div className="inline-block max-w-full bg-[#2E2E2E] px-7 py-[0.6rem] rounded-[3rem] mx-auto">
+        <span className="block max-w-full overflow-hidden whitespace-nowrap text-ellipsis text-[1.6rem] text-body-medium">
+          {review.store_name}
+        </span>
+      </div>
     </div>
   </div>
 );
