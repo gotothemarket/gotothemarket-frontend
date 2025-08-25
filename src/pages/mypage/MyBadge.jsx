@@ -10,17 +10,21 @@ const SectionTitle = ({ title, subtitle }) => (
   </div>
 );
 
-const BadgeCard = ({ badge, isEquipped, isActive }) => (
+const BadgeCard = ({ badge, isEquipped, acquired }) => (
   <div
     className={`flex flex-col items-center justify-center w-[15rem] h-[12.1rem] rounded-[1rem] ${
       isEquipped
-        ? 'bg-[#181818] border border-[#FA0]'
-        : isActive
-          ? 'bg-[#181818]'
-          : 'bg-[#131313] opacity-40'
+        ? 'bg-[#181818] border border-[#FA0]'   // 장착: 테두리 강조 + 밝음
+        : acquired
+          ? 'bg-[#181818]'                      // 획득(미장착): 밝음
+          : 'bg-[#131313] opacity-40'           // 미획득: 어둡게
     }`}
   >
-    <img src={badge.badgeIcon} alt={badge.badgeName} className="w-[8rem] h-[8rem] object-contain" />
+    <img
+      src={badge.badgeIcon}
+      alt={badge.badgeName}
+      className="w-[8rem] h-[8rem] object-contain"
+    />
   </div>
 );
 
@@ -132,11 +136,11 @@ const MyBadge = () => {
       <div className="mt-[1.2rem] px-[2rem] grid grid-cols-2 gap-x-[1.6rem] gap-y-[2rem]">
         {badges && badges.length > 0 ? (
           badges.map((badge) => {
-            const isEquipped = badge.badgeId === equippedId;
-            const isActive = badge.badgeId <= equippedId;
+            const isEquipped = !!badge.equipped; // 장착 여부
+            const acquired = !!badge.acquired; // 획득 여부
             return (
               <div key={badge.badgeId} className="flex flex-col items-center">
-                <BadgeCard badge={badge} isEquipped={isEquipped} isActive={isActive} />
+                <BadgeCard badge={badge} isEquipped={isEquipped} acquired={acquired} />
                 <BadgeLabel acquired={badge.acquired} equipped={badge.equipped}>
                   {badge.badgeName}
                 </BadgeLabel>
