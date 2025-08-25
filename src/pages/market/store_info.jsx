@@ -203,7 +203,7 @@ export default function StoreInfo() {
         <EntityHeader
           icon={store.store_icon}
           title={store.store_name}
-          subtitle="대창마니아님 제보"
+          subtitle="멋쟁이사자처럼님 제보"
           bookmark={isBookmarked}
           onToggleBookmark={handleBookmark}
         />

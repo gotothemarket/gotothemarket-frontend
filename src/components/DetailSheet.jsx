@@ -126,6 +126,33 @@ function StoreDetail({ payload, navigate, queryClient }) {
   console.log('🔍 StoreDetail payload:', payload);
   console.log('🔍 StoreDetail photos:', photos);
 
+  // 좌표 → 도로명 주소 역지오코딩 (모달에서만 실행)
+  useEffect(() => {
+    // 문자열로 들어오는 경우도 대비
+    const lat = store?.store_coord?.lat != null ? parseFloat(store.store_coord.lat) : undefined;
+    const lng = store?.store_coord?.lng != null ? parseFloat(store.store_coord.lng) : undefined;
+
+    // 이미 주소가 있거나 좌표 없으면 스킵
+    if (store?.store_address || !lat || !lng) return;
+
+    const kakao = window?.kakao;
+    if (!kakao?.maps?.services) return; // SDK 미로딩 시 안전장치
+
+    const geocoder = new kakao.maps.services.Geocoder();
+    geocoder.coord2Address(
+      lng, // ⚠️ Kakao는 (lng, lat) 순서
+      lat,
+      (result, status) => {
+        if (status === kakao.maps.services.Status.OK && result?.length) {
+          const road = result[0]?.road_address?.address_name;
+          const jibun = result[0]?.address?.address_name;
+          const addr = road || jibun || '';
+          if (addr) setStore(prev => ({ ...prev, store_address: addr }));
+        }
+      }
+    );
+  }, [store?.store_coord, store?.store_address]);
+
   // 즐겨찾기 토글 함수
   const handleToggleBookmark = async (storeId) => {
     try {
@@ -186,7 +213,7 @@ function StoreDetail({ payload, navigate, queryClient }) {
       <EntityHeader
         icon={store.store_icon}
         title={store.store_name}
-        subtitle="대창마니아님 제보"
+        subtitle="멋쟁이사자처럼님 제보"
         bookmark={store.favorite_check}
         onToggleBookmark={() => handleToggleBookmark(store.store_id)}
       />
