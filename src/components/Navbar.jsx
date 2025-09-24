@@ -98,22 +98,26 @@ export default function Navbar() {
               className={`text-xs ${location.pathname === '/report/location' || location.pathname === '/report/form' ? 'text-blue-600' : 'text-gray-600'}`}
             ></span>
           </button>
-          <NavLink
-            to="/"
-            end
+          <button
+            onClick={() => {
+              const savedLocation = localStorage.getItem('lastMapLocation');
+              const returnLocation = savedLocation ? JSON.parse(savedLocation) : null;
+              
+              console.log('🏠 Navbar 홈 버튼 클릭 - localStorage에서 가져온 위치:', returnLocation);
+              
+              navigate('/', { 
+                state: { returnLocation } 
+              });
+            }}
             className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors"
           >
-            {({ isActive }) => (
-              <>
-                <img
-                  src={isActive ? homeIcon : homeInactiveIcon}
-                  alt="홈"
-                  className="w-[2rem] h-[2rem]"
-                />
-                <span className={`text-xs ${isActive ? 'text-blue-600' : 'text-gray-600'}`}></span>
-              </>
-            )}
-          </NavLink>
+            <img
+              src={location.pathname === '/' ? homeIcon : homeInactiveIcon}
+              alt="홈"
+              className="w-[2rem] h-[2rem]"
+            />
+            <span className={`text-xs ${location.pathname === '/' ? 'text-blue-600' : 'text-gray-600'}`}></span>
+          </button>
           <NavLink
             to="/mypage"
             className="flex flex-col items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors"

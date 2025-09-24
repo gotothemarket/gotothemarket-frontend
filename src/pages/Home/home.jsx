@@ -350,12 +350,30 @@ export const Home = () => {
           updateCenterAddress(map);
           // 전역 변수 업데이트
           window.currentHomeMap = map;
+          
+          // localStorage에 현재 위치 저장
+          const center = map.getCenter();
+          const currentMapLocation = {
+            lat: center.getLat(),
+            lng: center.getLng()
+          };
+          localStorage.setItem('lastMapLocation', JSON.stringify(currentMapLocation));
+          console.log('📍 지도 위치 localStorage에 저장:', currentMapLocation);
         });
 
         window.kakao.maps.event.addListener(map, 'zoom_changed', () => {
           updateCenterAddress(map);
           // 전역 변수 업데이트
           window.currentHomeMap = map;
+          
+          // localStorage에 현재 위치 저장
+          const center = map.getCenter();
+          const currentMapLocation = {
+            lat: center.getLat(),
+            lng: center.getLng()
+          };
+          localStorage.setItem('lastMapLocation', JSON.stringify(currentMapLocation));
+          console.log('📍 지도 위치 localStorage에 저장:', currentMapLocation);
         });
 
         map._hasEventListeners = true;
