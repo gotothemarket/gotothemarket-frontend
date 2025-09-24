@@ -117,7 +117,7 @@ const ReportForm = () => {
     navigate('/'); // 홈으로 이동
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (forceRegister = false) => {
     if (!storeName.trim()) {
       alert('가게 이름을 입력해주세요.');
       return;
@@ -128,8 +128,8 @@ const ReportForm = () => {
       return;
     }
 
-    // 위치 검증 (편집 모드가 아닌 경우에만)
-    if (mode !== 'edit' && validationData) {
+    // 위치 검증 (편집 모드가 아니고 강제 등록이 아닌 경우에만)
+    if (mode !== 'edit' && !forceRegister && validationData) {
       if (!validationData.isValid || validationData.nearbyStores?.length > 0) {
         setDuplicateStores(validationData.nearbyStores || []);
         setShowDuplicateModal(true);
@@ -164,6 +164,7 @@ const ReportForm = () => {
       openingHours: startTime,
       closingHours: endTime,
       storeIcon: getStoreIcon(storeType), // 가게 종류에 따른 아이콘
+      ...(forceRegister && { forceRegister: true }), // 강제 등록 플래그 (필요시에만 추가)
     };
 
     console.log('🚀 가게 제보 요청 데이터:', storeData);
@@ -211,55 +212,10 @@ const ReportForm = () => {
   };
 
   // 중복 무시하고 강제 등록
-  const handleForceSubmit = async () => {
+  const handleForceSubmit = () => {
     setShowDuplicateModal(false);
-    
-    // 기존 제출 로직과 동일하지만 검증 건너뛰기
-    const typeNumber = getStoreTypeNumber(storeType);
-    const typeNameById = {
-      1: '과일·야채',
-      2: '수산',
-      3: '식당',
-      4: '빵·떡',
-      5: '잡화',
-      6: '길거리음식',
-      7: '축산',
-      8: '의류',
-    };
-    const storeData = {
-      memberId: 1,
-      storeType: typeNumber,
-      storeTypeId: typeNumber,
-      storeTypeName: typeNameById[typeNumber],
-      storeName: storeName.trim(),
-      address: displayAddress || address || initial?.address || '주소 정보 없음',
-      storeCoord: {
-        lat: selectedLocation?.lat ?? initial?.coord?.lat,
-        lng: selectedLocation?.lng ?? initial?.coord?.lng,
-      },
-      phoneNumber: contact.trim() || '',
-      openingHours: startTime,
-      closingHours: endTime,
-      storeIcon: getStoreIcon(storeType),
-      forceRegister: true, // 강제 등록 플래그
-    };
-
-    try {
-      const response = await reportStoreMutation.mutateAsync(storeData);
-      
-      const responseStoreId =
-        response?.storeId ?? response?.id ?? response?.data?.storeId ?? response?.data?.id;
-      
-      if (responseStoreId) {
-        navigate(`/stores/${responseStoreId}`);
-      } else {
-        alert('가게가 성공적으로 제보되었습니다!');
-        navigate('/');
-      }
-    } catch (error) {
-      console.error('❌ 강제 등록 에러:', error);
-      alert('가게 제보에 실패했습니다. 다시 시도해주세요.');
-    }
+    // 기존 handleSubmit 재활용 (검증 건너뛰고 바로 등록)
+    handleSubmit(true); // forceRegister 플래그 전달
   };
 
   // 가게 종류를 숫자로 변환하는 함수
