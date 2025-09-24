@@ -77,10 +77,24 @@ const AiResult = () => {
       setIsVisible(false);
       // 애니메이션 완료 후 홈화면으로 이동
       setTimeout(() => {
-        navigate('/');
+        navigate('/', {
+          state: {
+            returnLocation: {
+              lat: centerLat,
+              lng: centerLng,
+            },
+          },
+        });
       }, 300);
     } else {
-      navigate('/');
+      navigate('/', {
+        state: {
+          returnLocation: {
+            lat: centerLat,
+            lng: centerLng,
+          },
+        },
+      });
     }
   };
 
@@ -263,7 +277,17 @@ const AiResult = () => {
       <div className="relative">
         <Header
           title="AI 코스 추천"
-          onBack={() => navigate(-1)}
+          onBack={() => {
+            // 홈으로 돌아가면서 현재 좌표 전달
+            navigate('/', {
+              state: {
+                returnLocation: {
+                  lat: centerLat,
+                  lng: centerLng,
+                },
+              },
+            });
+          }}
           backgroundColor="rgba(254, 254, 254, 0.30)"
         />
 

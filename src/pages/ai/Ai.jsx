@@ -358,7 +358,17 @@ const Ai = () => {
       >
         <Header
           title="AI 코스 추천"
-          onBack={() => navigate(-1)}
+          onBack={() => {
+            // 홈으로 돌아가면서 현재 좌표 전달
+            navigate('/', {
+              state: {
+                returnLocation: {
+                  lat: centerLat,
+                  lng: centerLng,
+                },
+              },
+            });
+          }}
           backgroundColor="rgba(254, 254, 254, 0.30)"
         />
 
