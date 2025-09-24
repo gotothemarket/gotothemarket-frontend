@@ -50,16 +50,27 @@ const ReportForm = () => {
   const updateStoreMutation = useMutation(updateStoreOptions(storeId));
 
   // 위치 검증 API 호출 (편집 모드에서는 건너뛰기)
-  const { data: validationData, isLoading: isValidating } = useQuery(
-    validateLocationOptions(
+  const { data: validationData, isLoading: isValidating } = useQuery({
+    ...validateLocationOptions(
       effectiveLocation?.lat,
       effectiveLocation?.lng,
-      50 // 50m 반경 내 중복 체크
+      10 // 10m 반경 내 중복 체크
     ),
-    {
-      enabled: !!(effectiveLocation?.lat && effectiveLocation?.lng && mode !== 'edit'),
-    }
-  );
+    enabled: !!(effectiveLocation?.lat && effectiveLocation?.lng && mode !== 'edit'),
+    staleTime: 0, // 캐시 무효화 - 항상 최신 데이터
+    gcTime: 0, // 가비지 컬렉션 시간도 0으로
+  });
+
+  // 검증 데이터 변경 시 로그 출력
+  useEffect(() => {
+    console.log('🔄 validationData 업데이트:', validationData);
+    console.log('🔄 isValidating 상태:', isValidating);
+  }, [validationData, isValidating]);
+
+  // 중복 모달 상태 변경 추적
+  useEffect(() => {
+    console.log('🔄 showDuplicateModal 상태 변경:', showDuplicateModal);
+  }, [showDuplicateModal]);
 
 
   // 초기 타입 세팅 (텍스트 → 내부 id 매핑은 간단화)
@@ -118,6 +129,7 @@ const ReportForm = () => {
   };
 
   const handleSubmit = async (forceRegister = false) => {
+    console.log('🚀 handleSubmit 호출됨, forceRegister:', forceRegister);
     if (!storeName.trim()) {
       alert('가게 이름을 입력해주세요.');
       return;
@@ -129,10 +141,19 @@ const ReportForm = () => {
     }
 
     // 위치 검증 (편집 모드가 아니고 강제 등록이 아닌 경우에만)
+    console.log('🔍 중복 체크 데이터:', { mode, forceRegister, validationData });
     if (mode !== 'edit' && !forceRegister && validationData) {
+      console.log('🚨 중복 체크 조건:', { 
+        isValid: validationData.isValid, 
+        nearbyStoresLength: validationData.nearbyStores?.length,
+        nearbyStores: validationData.nearbyStores 
+      });
       if (!validationData.isValid || validationData.nearbyStores?.length > 0) {
+        console.log('🚨 중복 모달 표시!');
+        console.log('🚨 nearbyStores:', validationData.nearbyStores);
         setDuplicateStores(validationData.nearbyStores || []);
         setShowDuplicateModal(true);
+        console.log('🚨 showDuplicateModal 상태 변경 완료');
         return;
       }
     }

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { loadKakaoMaps, createMap, makeMarkerImage } from '../../utils/kakaoMap';
+import { validateLocationOptions } from '../../apis/apis';
 import pinUrl from '../../assets/pin.svg';
 import closeIcon from '../../assets/close_icon.svg';
 
@@ -11,7 +13,21 @@ const ReportLocation = () => {
 
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [address, setAddress] = useState(initialAddress || '');
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [duplicateStores, setDuplicateStores] = useState([]);
   const KAKAO_KEY = import.meta.env.VITE_KAKAO_MAP_API_KEY;
+
+  // 위치 검증 API 호출
+  const { data: validationData } = useQuery({
+    ...validateLocationOptions(
+      selectedLocation?.lat,
+      selectedLocation?.lng,
+      10 // 10m 반경 내 중복 체크
+    ),
+    enabled: !!(selectedLocation?.lat && selectedLocation?.lng),
+    staleTime: 0,
+    gcTime: 0,
+  });
 
   useEffect(() => {
     console.log('🔍 ReportLocation useEffect 실행:', {
@@ -208,7 +224,16 @@ const ReportLocation = () => {
     }
 
     console.log('제출된 위치:', selectedLocation);
-    // ReportForm으로 좌표 데이터와 함께 네비게이트
+    
+    // 중복 체크 결과 확인
+    if (validationData && (!validationData.isValid || validationData.nearbyStores?.length > 0)) {
+      // 중복 가게가 있으면 모달 표시 (지도 위에)
+      setDuplicateStores(validationData.nearbyStores || []);
+      setShowDuplicateModal(true);
+      return;
+    }
+
+    // 중복이 없으면 바로 등록창으로 이동
     navigate('/report/form', {
       state: {
         location: selectedLocation,
@@ -322,6 +347,258 @@ const ReportLocation = () => {
             이 위치로 하기
           </button>
         </div>
+
+        {/* 중복 가게 안내 모달 - 지도 위에 투명 배경으로 표시 */}
+        {showDuplicateModal && (
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+            {/* Frame 1057 */}
+            <div 
+              className="bg-[#FEFEFE] flex flex-col items-start gap-[10px]"
+              style={{
+                width: '262px',
+                height: '221px',
+                padding: '14px 15px',
+                borderRadius: '20px',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+              }}
+            >
+              {/* Frame 1062 */}
+              <div className="flex flex-col items-center gap-[10px] w-[232px] h-[193px]">
+                
+                {/* Frame 1296 - 제목 영역 */}
+                <div className="flex flex-col items-start gap-[5px] w-[232px] h-[47px]">
+                  {/* 👀 이모지 */}
+                  <div 
+                    className="w-[232px] h-[25px] flex items-center justify-center text-[#0A0A0A]"
+                    style={{
+                      fontFamily: 'Pretendard Variable',
+                      fontWeight: 600,
+                      fontSize: '25px',
+                      lineHeight: '30px',
+                    }}
+                  >
+                    👀
+                  </div>
+                  
+                  {/* 제목 텍스트 */}
+                  <div 
+                    className="w-[232px] h-[17px] flex items-center justify-center text-[#0A0A0A]"
+                    style={{
+                      fontFamily: 'Pretendard Variable',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      lineHeight: '17px',
+                    }}
+                  >
+                    근처에 제보된 가게가 이미 있어요!
+                  </div>
+                </div>
+
+                {/* Frame 1063 - 가게 목록 영역 */}
+                <div className="flex flex-col items-center gap-[10px] w-[232px] h-[87px]">
+                  
+                  {/* Frame 1297 - 가게 리스트 */}
+                  <div className="flex flex-col items-center gap-[5px]" style={{ width: '207.8px', height: '53px' }}>
+                    
+                    {/* 가게 목록 - 첫 번째 줄 */}
+                    <div className="flex flex-row items-start gap-[5px]" style={{ width: '207.8px', height: '24px' }}>
+                      {duplicateStores.slice(0, 2).map((store, index) => (
+                        <div 
+                          key={index}
+                          className="flex flex-row justify-center items-center gap-[5px] bg-[#FFF3DE] rounded-[10px]"
+                          style={{
+                            padding: '5px 12px',
+                            minWidth: index === 0 ? '123.4px' : '79.4px',
+                            height: '24px'
+                          }}
+                        >
+                          {/* Pin 아이콘 */}
+                          <div 
+                            className="relative"
+                            style={{ width: '8.4px', height: '13.2px' }}
+                          >
+                            <div 
+                              className="absolute rounded-full"
+                              style={{
+                                width: '7.5px',
+                                height: '2.7px',
+                                left: '0.3px',
+                                top: '10.5px',
+                                background: 'radial-gradient(50% 50% at 50% 50%, rgba(255, 170, 0, 0.6) 0%, rgba(255, 170, 0, 0.2) 50%, rgba(255, 170, 0, 0) 100%)'
+                              }}
+                            />
+                            <div 
+                              className="absolute bg-[#0A0A0A]"
+                              style={{
+                                width: '100%',
+                                height: '90.91%',
+                                border: '0.24px solid #FEA900',
+                                borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%'
+                              }}
+                            />
+                            <div 
+                              className="absolute bg-[#FEA900] rounded-full"
+                              style={{
+                                width: '4.2px',
+                                height: '3.6px',
+                                left: '2.1px',
+                                top: '2.7px'
+                              }}
+                            />
+                          </div>
+                          
+                          {/* 가게 이름 */}
+                          <span 
+                            className="text-[#FF9C1F] text-center"
+                            style={{
+                              fontFamily: 'Pretendard Variable',
+                              fontWeight: 700,
+                              fontSize: '12px',
+                              lineHeight: '14px',
+                            }}
+                          >
+                            {store.storeName}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* 가게 목록 - 두 번째 줄 (3개 이상일 때) */}
+                    {duplicateStores.length > 2 && (
+                      <div className="flex flex-row items-start gap-[5px]" style={{ width: '207.8px', height: '24px' }}>
+                        {duplicateStores.slice(2, 4).map((store, index) => (
+                          <div 
+                            key={index + 2}
+                            className="flex flex-row justify-center items-center gap-[5px] bg-[#FFF3DE] rounded-[10px]"
+                            style={{
+                              padding: '5px 12px',
+                              minWidth: index === 1 ? '123.4px' : '79.4px',
+                              height: '24px'
+                            }}
+                          >
+                            {/* Pin 아이콘 */}
+                            <div 
+                              className="relative"
+                              style={{ width: '8.4px', height: '13.2px' }}
+                            >
+                              <div 
+                                className="absolute rounded-full"
+                                style={{
+                                  width: '7.5px',
+                                  height: '2.7px',
+                                  left: '0.3px',
+                                  top: '10.5px',
+                                  background: 'radial-gradient(50% 50% at 50% 50%, rgba(255, 170, 0, 0.6) 0%, rgba(255, 170, 0, 0.2) 50%, rgba(255, 170, 0, 0) 100%)'
+                                }}
+                              />
+                              <div 
+                                className="absolute bg-[#0A0A0A]"
+                                style={{
+                                  width: '100%',
+                                  height: '90.91%',
+                                  border: '0.24px solid #FEA900',
+                                  borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%'
+                                }}
+                              />
+                              <div 
+                                className="absolute bg-[#FEA900] rounded-full"
+                                style={{
+                                  width: '4.2px',
+                                  height: '3.6px',
+                                  left: '2.1px',
+                                  top: '2.7px'
+                                }}
+                              />
+                            </div>
+                            
+                            {/* 가게 이름 */}
+                            <span 
+                              className="text-[#FF9C1F] text-center"
+                              style={{
+                                fontFamily: 'Pretendard Variable',
+                                fontWeight: 700,
+                                fontSize: '12px',
+                                lineHeight: '14px',
+                              }}
+                            >
+                              {store.storeName}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 안내 메시지 */}
+                  <div 
+                    className="w-[232px] flex items-center justify-center text-[#0A0A0A] text-center"
+                    style={{
+                      fontFamily: 'Pretendard Variable',
+                      fontWeight: 500,
+                      fontSize: '10px',
+                      lineHeight: '12px',
+                      opacity: 0.3,
+                    }}
+                  >
+                    중복 제보를 막기 위해,<br />같은 가게가 아닌지 확인해주세요!
+                  </div>
+                </div>
+
+                {/* Frame 1061 - 버튼 영역 */}
+                <div className="flex flex-row items-center gap-[13px] w-[232px] h-[39px]">
+                  
+                  {/* 가게 제보하기 버튼 */}
+                  <div className="relative w-[109px] h-[39px] bg-[#F7F7F7] rounded-[10px]">
+                    <button
+                      onClick={() => {
+                        setShowDuplicateModal(false);
+                        navigate('/report/form', {
+                          state: {
+                            location: selectedLocation,
+                            address: address,
+                          },
+                        });
+                      }}
+                      className="absolute inset-0 flex flex-col justify-center items-center opacity-70 hover:opacity-100 transition-opacity"
+                    >
+                      <span 
+                        className="text-[#0A0A0A] text-center"
+                        style={{
+                          fontFamily: 'Pretendard Variable',
+                          fontWeight: 600,
+                          fontSize: '12px',
+                          lineHeight: '14px',
+                        }}
+                      >
+                        가게 제보하기
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* 뒤로가기 버튼 */}
+                  <div className="relative w-[110px] h-[39px] bg-[#F7F7F7] rounded-[10px]">
+                    <button
+                      onClick={() => setShowDuplicateModal(false)}
+                      className="absolute inset-0 flex flex-col justify-center items-center opacity-70 hover:opacity-100 transition-opacity"
+                    >
+                      <span 
+                        className="text-[#0A0A0A] text-center"
+                        style={{
+                          fontFamily: 'Pretendard Variable',
+                          fontWeight: 600,
+                          fontSize: '12px',
+                          lineHeight: '14px',
+                        }}
+                      >
+                        뒤로가기
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
