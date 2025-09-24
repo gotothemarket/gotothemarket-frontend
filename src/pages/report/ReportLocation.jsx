@@ -356,14 +356,14 @@ const ReportLocation = () => {
               className="bg-[#FEFEFE] flex flex-col items-start gap-[10px]"
               style={{
                 width: '262px',
-                height: '221px',
+                height: Math.ceil(duplicateStores.length / 2) === 1 ? '192px' : Math.ceil(duplicateStores.length / 2) > 2 ? '250px' : '221px',
                 padding: '14px 15px',
                 borderRadius: '20px',
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
               }}
             >
               {/* Frame 1062 */}
-              <div className="flex flex-col items-center gap-[10px] w-[232px] h-[193px]">
+              <div className="flex flex-col items-center gap-[10px] w-[232px]" style={{ height: Math.ceil(duplicateStores.length / 2) === 1 ? '164px' : '193px' }}>
                 
                 {/* Frame 1296 - 제목 영역 */}
                 <div className="flex flex-col items-start gap-[5px] w-[232px] h-[47px]">
@@ -395,138 +395,62 @@ const ReportLocation = () => {
                 </div>
 
                 {/* Frame 1063 - 가게 목록 영역 */}
-                <div className="flex flex-col items-center gap-[10px] w-[232px] h-[87px]">
+                <div className="flex flex-col items-center gap-[10px] w-[232px]">
                   
                   {/* Frame 1297 - 가게 리스트 */}
-                  <div className="flex flex-col items-center gap-[5px]" style={{ width: '207.8px', height: '53px' }}>
-                    
-                    {/* 가게 목록 - 첫 번째 줄 */}
-                    <div className="flex flex-row items-start gap-[5px]" style={{ width: '207.8px', height: '24px' }}>
-                      {duplicateStores.slice(0, 2).map((store, index) => (
-                        <div 
-                          key={index}
-                          className="flex flex-row justify-center items-center gap-[5px] bg-[#FFF3DE] rounded-[10px]"
-                          style={{
-                            padding: '5px 12px',
-                            minWidth: index === 0 ? '123.4px' : '79.4px',
-                            height: '24px'
-                          }}
-                        >
-                          {/* Pin 아이콘 */}
-                          <div 
-                            className="relative"
-                            style={{ width: '8.4px', height: '13.2px' }}
-                          >
-                            <div 
-                              className="absolute rounded-full"
-                              style={{
-                                width: '7.5px',
-                                height: '2.7px',
-                                left: '0.3px',
-                                top: '10.5px',
-                                background: 'radial-gradient(50% 50% at 50% 50%, rgba(255, 170, 0, 0.6) 0%, rgba(255, 170, 0, 0.2) 50%, rgba(255, 170, 0, 0) 100%)'
-                              }}
-                            />
-                            <div 
-                              className="absolute bg-[#0A0A0A]"
-                              style={{
-                                width: '100%',
-                                height: '90.91%',
-                                border: '0.24px solid #FEA900',
-                                borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%'
-                              }}
-                            />
-                            <div 
-                              className="absolute bg-[#FEA900] rounded-full"
-                              style={{
-                                width: '4.2px',
-                                height: '3.6px',
-                                left: '2.1px',
-                                top: '2.7px'
-                              }}
-                            />
-                          </div>
+                  <div className="flex flex-col items-center gap-[5px] w-[207.8px]">
+                    {/* 2개씩 행으로 나누어서 표시 */}
+                    {Array.from({ length: Math.ceil(duplicateStores.length / 2) }, (_, rowIndex) => (
+                      <div key={rowIndex} className="flex flex-row justify-center items-start gap-[5px] w-[207.8px] h-[24px]">
+                        {duplicateStores.slice(rowIndex * 2, (rowIndex + 1) * 2).map((store, index) => {
+                          // 가게 이름 5자 이상 시 말줄임표 처리
+                          const displayName = store.storeName && store.storeName.length > 5 
+                            ? store.storeName.substring(0, 5) + '...' 
+                            : store.storeName;
                           
-                          {/* 가게 이름 */}
-                          <span 
-                            className="text-[#FF9C1F] text-center"
-                            style={{
-                              fontFamily: 'Pretendard Variable',
-                              fontWeight: 700,
-                              fontSize: '12px',
-                              lineHeight: '14px',
-                            }}
-                          >
-                            {store.storeName}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* 가게 목록 - 두 번째 줄 (3개 이상일 때) */}
-                    {duplicateStores.length > 2 && (
-                      <div className="flex flex-row items-start gap-[5px]" style={{ width: '207.8px', height: '24px' }}>
-                        {duplicateStores.slice(2, 4).map((store, index) => (
-                          <div 
-                            key={index + 2}
-                            className="flex flex-row justify-center items-center gap-[5px] bg-[#FFF3DE] rounded-[10px]"
-                            style={{
-                              padding: '5px 12px',
-                              minWidth: index === 1 ? '123.4px' : '79.4px',
-                              height: '24px'
-                            }}
-                          >
-                            {/* Pin 아이콘 */}
+                          return (
                             <div 
-                              className="relative"
-                              style={{ width: '8.4px', height: '13.2px' }}
-                            >
-                              <div 
-                                className="absolute rounded-full"
-                                style={{
-                                  width: '7.5px',
-                                  height: '2.7px',
-                                  left: '0.3px',
-                                  top: '10.5px',
-                                  background: 'radial-gradient(50% 50% at 50% 50%, rgba(255, 170, 0, 0.6) 0%, rgba(255, 170, 0, 0.2) 50%, rgba(255, 170, 0, 0) 100%)'
-                                }}
-                              />
-                              <div 
-                                className="absolute bg-[#0A0A0A]"
-                                style={{
-                                  width: '100%',
-                                  height: '90.91%',
-                                  border: '0.24px solid #FEA900',
-                                  borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%'
-                                }}
-                              />
-                              <div 
-                                className="absolute bg-[#FEA900] rounded-full"
-                                style={{
-                                  width: '4.2px',
-                                  height: '3.6px',
-                                  left: '2.1px',
-                                  top: '2.7px'
-                                }}
-                              />
-                            </div>
-                            
-                            {/* 가게 이름 */}
-                            <span 
-                              className="text-[#FF9C1F] text-center"
+                              key={`${rowIndex}-${index}`}
+                              className="flex flex-row justify-center items-center gap-[5px] bg-[#FFF3DE] rounded-[10px]"
                               style={{
-                                fontFamily: 'Pretendard Variable',
-                                fontWeight: 700,
-                                fontSize: '12px',
-                                lineHeight: '14px',
+                                padding: '5px 12px',
+                                height: '24px'
                               }}
                             >
-                              {store.storeName}
-                            </span>
-                          </div>
-                        ))}
+                              {/* Pin 아이콘 - SVG 사용 */}
+                              <div className="flex-shrink-0" style={{ width: '12px', height: '18px' }}>
+                                <svg width="12" height="18" viewBox="0 0 28 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <ellipse cx="13.5" cy="39.5" rx="12.5" ry="4.5" fill="url(#paint0_radial_302_977)"/>
+                                  <path d="M12.4004 27.5127L12.0576 27.4629C8.82024 26.9956 5.85879 25.3774 3.71777 22.9043C1.57687 20.4313 0.399617 17.2691 0.400391 13.998C0.40106 11.3911 1.15094 8.83935 2.56055 6.64648C3.97011 4.45372 5.97956 2.71175 8.35059 1.62891C10.7217 0.546121 13.3545 0.167276 15.9346 0.538086C18.5147 0.908962 20.9341 2.01391 22.9043 3.7207C24.8745 5.42756 26.3128 7.66491 27.0479 10.166C27.7829 12.6672 27.7843 15.3275 27.0508 17.8291C26.3173 20.3305 24.8802 22.5684 22.9111 24.2764C20.9419 25.9844 18.5224 27.0905 15.9424 27.4629L15.5996 27.5127V38C15.5996 38.4241 15.4316 38.8309 15.1318 39.1309C14.8318 39.4309 14.4243 39.5996 14 39.5996C13.5757 39.5996 13.1682 39.4309 12.8682 39.1309C12.5684 38.8309 12.4004 38.4241 12.4004 38V27.5127Z" fill="#0A0A0A" stroke="#FEA900" strokeWidth="0.8"/>
+                                  <path d="M7.94776 15.176C6.61143 13.7248 6.69883 11.4597 8.14299 10.1168L8.43354 9.8466C9.71723 8.6529 11.7208 8.73098 12.9087 10.021L18.8234 16.4443L14.4667 20.7671C14.1457 21.0655 13.5527 21.0896 13.2557 20.7671L7.94776 15.176Z" fill="#FFAA00"/>
+                                  <path d="M15.3028 9.94842C16.5852 8.75331 18.5889 8.82918 19.7781 10.1179L20.0489 10.4113C21.3878 11.862 21.3028 14.1288 19.8591 15.4742L16.0877 18.9889C14.8053 20.184 12.8016 20.1082 11.6123 18.8195L8.91739 15.8992L15.3028 9.94842Z" fill="#FFAA00"/>
+                                  <defs>
+                                    <radialGradient id="paint0_radial_302_977" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(13.5 39.5) scale(12.5 4.5)">
+                                      <stop stopColor="#FFAA00" stopOpacity="0.6"/>
+                                      <stop offset="0.5" stopColor="#FFAA00" stopOpacity="0.2"/>
+                                      <stop offset="1" stopColor="#FFAA00" stopOpacity="0"/>
+                                    </radialGradient>
+                                  </defs>
+                                </svg>
+                              </div>
+                              
+                              {/* 가게 이름 */}
+                              <span 
+                                className="text-[#FF9C1F] text-center whitespace-nowrap"
+                                style={{
+                                  fontFamily: 'Pretendard Variable',
+                                  fontWeight: 700,
+                                  fontSize: '12px',
+                                  lineHeight: '14px',
+                                }}
+                              >
+                                {displayName}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
-                    )}
+                    ))}
                   </div>
 
                   {/* 안내 메시지 */}
