@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import MapBox from '../market/components/MapBox';
-import { reportStoreOptions, updateStoreOptions } from '../../apis/apis';
+import { reportStoreOptions, updateStoreOptions, validateLocationOptions } from '../../apis/apis';
 import { loadKakaoMaps } from '../../utils/kakaoMap';
 import closeIcon from '../../assets/close_icon.svg';
 import backIcon from '../../assets/left_arrow.svg';
@@ -42,10 +42,25 @@ const ReportForm = () => {
   );
   const [contact, setContact] = useState(initial?.phoneNumber || '');
   const [displayAddress, setDisplayAddress] = useState(address || initial?.address || '');
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [duplicateStores, setDuplicateStores] = useState([]);
 
   // 가게 제보 API 호출
   const reportStoreMutation = useMutation(reportStoreOptions());
   const updateStoreMutation = useMutation(updateStoreOptions(storeId));
+
+  // 위치 검증 API 호출 (편집 모드에서는 건너뛰기)
+  const { data: validationData, isLoading: isValidating } = useQuery(
+    validateLocationOptions(
+      effectiveLocation?.lat,
+      effectiveLocation?.lng,
+      50 // 50m 반경 내 중복 체크
+    ),
+    {
+      enabled: !!(effectiveLocation?.lat && effectiveLocation?.lng && mode !== 'edit'),
+    }
+  );
+
 
   // 초기 타입 세팅 (텍스트 → 내부 id 매핑은 간단화)
   useEffect(() => {
@@ -111,6 +126,15 @@ const ReportForm = () => {
     if (!storeType) {
       alert('가게 종류를 선택해주세요.');
       return;
+    }
+
+    // 위치 검증 (편집 모드가 아닌 경우에만)
+    if (mode !== 'edit' && validationData) {
+      if (!validationData.isValid || validationData.nearbyStores?.length > 0) {
+        setDuplicateStores(validationData.nearbyStores || []);
+        setShowDuplicateModal(true);
+        return;
+      }
     }
 
     // API 요청 본문 형식에 맞춰 데이터 변환
@@ -183,6 +207,58 @@ const ReportForm = () => {
           ? '가게 정보 수정에 실패했습니다.'
           : '가게 제보에 실패했습니다. 다시 시도해주세요.',
       );
+    }
+  };
+
+  // 중복 무시하고 강제 등록
+  const handleForceSubmit = async () => {
+    setShowDuplicateModal(false);
+    
+    // 기존 제출 로직과 동일하지만 검증 건너뛰기
+    const typeNumber = getStoreTypeNumber(storeType);
+    const typeNameById = {
+      1: '과일·야채',
+      2: '수산',
+      3: '식당',
+      4: '빵·떡',
+      5: '잡화',
+      6: '길거리음식',
+      7: '축산',
+      8: '의류',
+    };
+    const storeData = {
+      memberId: 1,
+      storeType: typeNumber,
+      storeTypeId: typeNumber,
+      storeTypeName: typeNameById[typeNumber],
+      storeName: storeName.trim(),
+      address: displayAddress || address || initial?.address || '주소 정보 없음',
+      storeCoord: {
+        lat: selectedLocation?.lat ?? initial?.coord?.lat,
+        lng: selectedLocation?.lng ?? initial?.coord?.lng,
+      },
+      phoneNumber: contact.trim() || '',
+      openingHours: startTime,
+      closingHours: endTime,
+      storeIcon: getStoreIcon(storeType),
+      forceRegister: true, // 강제 등록 플래그
+    };
+
+    try {
+      const response = await reportStoreMutation.mutateAsync(storeData);
+      
+      const responseStoreId =
+        response?.storeId ?? response?.id ?? response?.data?.storeId ?? response?.data?.id;
+      
+      if (responseStoreId) {
+        navigate(`/stores/${responseStoreId}`);
+      } else {
+        alert('가게가 성공적으로 제보되었습니다!');
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('❌ 강제 등록 에러:', error);
+      alert('가게 제보에 실패했습니다. 다시 시도해주세요.');
     }
   };
 
@@ -455,13 +531,15 @@ const ReportForm = () => {
             !storeName.trim() ||
             !storeType ||
             reportStoreMutation.isPending ||
-            updateStoreMutation.isPending
+            updateStoreMutation.isPending ||
+            isValidating
           }
           className={`w-full h-[4.4rem] pb-[7.2rem] pt-[2.3rem] text-[1.4rem] font-semibold transition-all ${
             storeName.trim() &&
             storeType &&
             !reportStoreMutation.isPending &&
-            !updateStoreMutation.isPending
+            !updateStoreMutation.isPending &&
+            !isValidating
               ? 'bg-[#FF9C1F] text-[#FEFEFE] hover:bg-[#FF8A00] active:scale-[0.98]'
               : 'bg-[#D9D9D9] text-white cursor-not-allowed'
           }`}
@@ -469,11 +547,256 @@ const ReportForm = () => {
         >
           {reportStoreMutation.isPending || updateStoreMutation.isPending
             ? '제출 중...'
-            : mode === 'edit'
-              ? '수정 완료'
-              : '가게 등록하기'}
+            : isValidating
+              ? '위치 검증 중...'
+              : mode === 'edit'
+                ? '수정 완료'
+                : '가게 등록하기'}
         </button>
       </div>
+
+      {/* 중복 가게 안내 모달 - Figma 디자인 */}
+      {showDuplicateModal && (
+        <div className="fixed inset-0 z-[10000] bg-black bg-opacity-50 flex items-center justify-center p-4">
+          {/* Frame 1057 */}
+          <div 
+            className="bg-[#FEFEFE] flex flex-col items-start gap-[10px]"
+            style={{
+              width: '262px',
+              height: '221px',
+              padding: '14px 15px',
+              borderRadius: '20px',
+            }}
+          >
+            {/* Frame 1062 */}
+            <div className="flex flex-col items-center gap-[10px] w-[232px] h-[193px]">
+              
+              {/* Frame 1296 - 제목 영역 */}
+              <div className="flex flex-col items-start gap-[5px] w-[232px] h-[47px]">
+                {/* 👀 이모지 */}
+                <div 
+                  className="w-[232px] h-[25px] flex items-center justify-center text-[#0A0A0A]"
+                  style={{
+                    fontFamily: 'Pretendard Variable',
+                    fontWeight: 600,
+                    fontSize: '25px',
+                    lineHeight: '30px',
+                  }}
+                >
+                  👀
+                </div>
+                
+                {/* 제목 텍스트 */}
+                <div 
+                  className="w-[232px] h-[17px] flex items-center justify-center text-[#0A0A0A]"
+                  style={{
+                    fontFamily: 'Pretendard Variable',
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    lineHeight: '17px',
+                  }}
+                >
+                  근처에 제보된 가게가 이미 있어요!
+                </div>
+              </div>
+
+              {/* Frame 1063 - 가게 목록 영역 */}
+              <div className="flex flex-col items-center gap-[10px] w-[232px] h-[87px]">
+                
+                {/* Frame 1297 - 가게 리스트 */}
+                <div className="flex flex-col items-center gap-[5px]" style={{ width: '207.8px', height: '53px' }}>
+                  
+                  {/* 가게 목록 - 첫 번째 줄 */}
+                  <div className="flex flex-row items-start gap-[5px]" style={{ width: '207.8px', height: '24px' }}>
+                    {duplicateStores.slice(0, 2).map((store, index) => (
+                      <div 
+                        key={index}
+                        className="flex flex-row justify-center items-center gap-[5px] bg-[#FFF3DE] rounded-[10px]"
+                        style={{
+                          padding: '5px 12px',
+                          minWidth: index === 0 ? '123.4px' : '79.4px',
+                          height: '24px'
+                        }}
+                      >
+                        {/* Pin 아이콘 */}
+                        <div 
+                          className="relative"
+                          style={{ width: '8.4px', height: '13.2px' }}
+                        >
+                          <div 
+                            className="absolute rounded-full"
+                            style={{
+                              width: '7.5px',
+                              height: '2.7px',
+                              left: '0.3px',
+                              top: '10.5px',
+                              background: 'radial-gradient(50% 50% at 50% 50%, rgba(255, 170, 0, 0.6) 0%, rgba(255, 170, 0, 0.2) 50%, rgba(255, 170, 0, 0) 100%)'
+                            }}
+                          />
+                          <div 
+                            className="absolute bg-[#0A0A0A]"
+                            style={{
+                              width: '100%',
+                              height: '90.91%',
+                              border: '0.24px solid #FEA900',
+                              borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%'
+                            }}
+                          />
+                          <div 
+                            className="absolute bg-[#FEA900] rounded-full"
+                            style={{
+                              width: '4.2px',
+                              height: '3.6px',
+                              left: '2.1px',
+                              top: '2.7px'
+                            }}
+                          />
+                        </div>
+                        
+                        {/* 가게 이름 */}
+                        <span 
+                          className="text-[#FF9C1F] text-center"
+                          style={{
+                            fontFamily: 'Pretendard Variable',
+                            fontWeight: 700,
+                            fontSize: '12px',
+                            lineHeight: '14px',
+                          }}
+                        >
+                          {store.storeName || (index === 0 ? '바다를 사랑하는...' : '전성시대')}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* 가게 목록 - 두 번째 줄 (3개 이상일 때) */}
+                  {duplicateStores.length > 2 && (
+                    <div className="flex flex-row items-start gap-[5px]" style={{ width: '207.8px', height: '24px' }}>
+                      {duplicateStores.slice(2, 4).map((store, index) => (
+                        <div 
+                          key={index + 2}
+                          className="flex flex-row justify-center items-center gap-[5px] bg-[#FFF3DE] rounded-[10px]"
+                          style={{
+                            padding: '5px 12px',
+                            minWidth: index === 1 ? '123.4px' : '79.4px',
+                            height: '24px'
+                          }}
+                        >
+                          {/* Pin 아이콘 */}
+                          <div 
+                            className="relative"
+                            style={{ width: '8.4px', height: '13.2px' }}
+                          >
+                            <div 
+                              className="absolute rounded-full"
+                              style={{
+                                width: '7.5px',
+                                height: '2.7px',
+                                left: '0.3px',
+                                top: '10.5px',
+                                background: 'radial-gradient(50% 50% at 50% 50%, rgba(255, 170, 0, 0.6) 0%, rgba(255, 170, 0, 0.2) 50%, rgba(255, 170, 0, 0) 100%)'
+                              }}
+                            />
+                            <div 
+                              className="absolute bg-[#0A0A0A]"
+                              style={{
+                                width: '100%',
+                                height: '90.91%',
+                                border: '0.24px solid #FEA900',
+                                borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%'
+                              }}
+                            />
+                            <div 
+                              className="absolute bg-[#FEA900] rounded-full"
+                              style={{
+                                width: '4.2px',
+                                height: '3.6px',
+                                left: '2.1px',
+                                top: '2.7px'
+                              }}
+                            />
+                          </div>
+                          
+                          {/* 가게 이름 */}
+                          <span 
+                            className="text-[#FF9C1F] text-center"
+                            style={{
+                              fontFamily: 'Pretendard Variable',
+                              fontWeight: 700,
+                              fontSize: '12px',
+                              lineHeight: '14px',
+                            }}
+                          >
+                            {store.storeName || (index === 0 ? '전성시대' : '귀뚜리미의 신나는')}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* 안내 메시지 */}
+                <div 
+                  className="w-[232px] h-[24px] flex items-center justify-center text-[#0A0A0A]"
+                  style={{
+                    fontFamily: 'Pretendard Variable',
+                    fontWeight: 500,
+                    fontSize: '10px',
+                    lineHeight: '12px',
+                    opacity: 0.3,
+                  }}
+                >
+                  중복 제보를 막기 위해, 같은 가게가 아닌지 확인해주세요!
+                </div>
+              </div>
+
+              {/* Frame 1061 - 버튼 영역 */}
+              <div className="flex flex-row items-center gap-[13px] w-[232px] h-[39px]">
+                
+                {/* 가게 제보하기 버튼 */}
+                <div className="relative w-[109px] h-[39px] bg-[#F7F7F7] rounded-[10px]">
+                  <button
+                    onClick={handleForceSubmit}
+                    className="absolute inset-0 flex flex-col justify-center items-center opacity-70 hover:opacity-100 transition-opacity"
+                  >
+                    <span 
+                      className="text-[#0A0A0A] text-center"
+                      style={{
+                        fontFamily: 'Pretendard Variable',
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        lineHeight: '17px',
+                      }}
+                    >
+                      가게 제보하기
+                    </span>
+                  </button>
+                </div>
+
+                {/* 뒤로가기 버튼 */}
+                <div className="relative w-[109px] h-[39px] bg-[#F7F7F7] rounded-[10px]">
+                  <button
+                    onClick={() => setShowDuplicateModal(false)}
+                    className="absolute inset-0 flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity"
+                  >
+                    <span 
+                      className="text-[#0A0A0A] text-center"
+                      style={{
+                        fontFamily: 'Pretendard Variable',
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        lineHeight: '17px',
+                      }}
+                    >
+                      뒤로가기
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

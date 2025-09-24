@@ -73,6 +73,19 @@ export const toggleFavoriteOptions = (storeId) =>
     invalidateKeys: [k.store.favorite(storeId), k.mypage.favorites(), k.store.detail(storeId)],
   });
 
+// 위치 검증 API (중복 체크)
+export const validateLocationOptions = (lat, lng, radius = 50) =>
+  createQueryOptions({
+    queryKey: k.store.validateLocation(lat, lng, radius),
+    queryFn: ({ signal }) => 
+      apiGet('/api/stores/validate-location', { 
+        signal, 
+        params: { lat, lng, radius } 
+      }),
+    enabled: !!(lat && lng),
+    staleTime: 30_000, // 30초간 캐시
+  });
+
 // 첫 실행 체크 및 뱃지 지급
 export const firstLaunchOptions = () =>
   createMutationOptions({

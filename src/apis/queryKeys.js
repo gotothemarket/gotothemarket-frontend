@@ -7,6 +7,7 @@ export const k = {
     photos: (storeId) => ['store', 'photos', storeId],
     favorite: (storeId) => ['store', 'favorite', storeId],
     location: () => ['store', 'location'], // 좌표 등록
+    validateLocation: (lat, lng, radius) => ['store', 'validateLocation', lat, lng, radius],
     listByMarket: (marketId, filters = {}) => ['store', 'listByMarket', marketId, filters],
   },
 
