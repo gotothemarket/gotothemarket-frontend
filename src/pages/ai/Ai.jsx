@@ -359,14 +359,24 @@ const Ai = () => {
         <Header
           title="AI 코스 추천"
           onBack={() => {
-            // 홈으로 돌아가면서 현재 좌표 전달
+            // localStorage 우선 사용, 없으면 AI 페이지의 centerLat/centerLng 사용
+            const savedLocation = localStorage.getItem('lastMapLocation');
+            let returnLocation = null;
+            
+            if (savedLocation) {
+              returnLocation = JSON.parse(savedLocation);
+              console.log('📍 AI 페이지 뒤로가기 - localStorage에서 가져온 위치와 줌:', returnLocation);
+            } else {
+              returnLocation = {
+                lat: centerLat,
+                lng: centerLng,
+                level: 3 // 기본 줌 레벨
+              };
+              console.log('📍 AI 페이지 뒤로가기 - centerLat/centerLng 사용:', returnLocation);
+            }
+            
             navigate('/', {
-              state: {
-                returnLocation: {
-                  lat: centerLat,
-                  lng: centerLng,
-                },
-              },
+              state: { returnLocation },
             });
           }}
           backgroundColor="rgba(254, 254, 254, 0.30)"

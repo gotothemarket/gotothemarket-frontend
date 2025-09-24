@@ -144,15 +144,25 @@ export default function StoreInfo() {
   const { store, photos, review_summary, reviews } = normalized;
 
   const handleBack = () => {
-    // 가게 좌표가 있으면 홈으로 이동할 때 위치 보존
-    if (normalized?.store?.store_coord) {
+    // localStorage 우선 사용, 없으면 store_coord 사용
+    const savedLocation = localStorage.getItem('lastMapLocation');
+    let returnLocation = null;
+    
+    if (savedLocation) {
+      returnLocation = JSON.parse(savedLocation);
+      console.log('📍 StoreInfo 뒤로가기 - localStorage에서 가져온 위치와 줌:', returnLocation);
+    } else if (normalized?.store?.store_coord) {
+      returnLocation = {
+        lat: normalized.store.store_coord.lat,
+        lng: normalized.store.store_coord.lng,
+        level: 3 // 기본 줌 레벨
+      };
+      console.log('📍 StoreInfo 뒤로가기 - store_coord 사용:', returnLocation);
+    }
+    
+    if (returnLocation) {
       navigate('/', { 
-        state: { 
-          returnLocation: { 
-            lat: normalized.store.store_coord.lat, 
-            lng: normalized.store.store_coord.lng 
-          } 
-        } 
+        state: { returnLocation } 
       });
     } else {
       navigate(-1);

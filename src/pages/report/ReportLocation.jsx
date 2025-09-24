@@ -60,14 +60,34 @@ const ReportLocation = () => {
         await loadKakaoMaps(KAKAO_KEY);
         console.log('✅ 카카오맵 로딩 완료');
 
-        // 초기 위치 설정 (전달받은 위치 우선, 기본 위치 순)
-        const initialLat = initialLocation?.lat || 37.4976451;
-        const initialLng = initialLocation?.lng || 126.9527737;
+        // localStorage에서 저장된 위치와 줌 레벨 가져오기
+        const savedLocation = localStorage.getItem('lastMapLocation');
+        let initialLat, initialLng, initialLevel;
+        
+        if (savedLocation) {
+          const saved = JSON.parse(savedLocation);
+          initialLat = saved.lat;
+          initialLng = saved.lng;
+          initialLevel = saved.level || 3;
+          console.log('📍 ReportLocation - localStorage에서 가져온 위치와 줌:', saved);
+        } else if (initialLocation) {
+          initialLat = initialLocation.lat;
+          initialLng = initialLocation.lng;
+          initialLevel = initialLocation.level || 3;
+          console.log('📍 ReportLocation - initialLocation 사용:', initialLocation);
+        } else {
+          // 기본값
+          initialLat = 37.4976451;
+          initialLng = 126.9527737;
+          initialLevel = 3;
+          console.log('📍 ReportLocation - 기본 위치 사용');
+        }
 
         console.log('🗺️ ReportLocation 지도 초기화:', {
           initialLocation,
           finalLat: initialLat,
           finalLng: initialLng,
+          finalLevel: initialLevel,
         });
 
         // 지도 생성
@@ -75,7 +95,7 @@ const ReportLocation = () => {
         const { map } = createMap(mapContainer, {
           lat: initialLat,
           lng: initialLng,
-          level: 3,
+          level: initialLevel,
         });
         console.log('✅ 지도 생성 완료:', map);
 
@@ -243,23 +263,26 @@ const ReportLocation = () => {
   };
 
   const handleClose = () => {
-    // 현재 지도의 중심 좌표를 홈으로 전달
+    // 현재 지도의 중심 좌표와 줌 레벨을 홈으로 전달
     if (window.currentMap) {
       const center = window.currentMap.getCenter();
       const currentLat = center.getLat();
       const currentLng = center.getLng();
+      const currentLevel = window.currentMap.getLevel();
 
       console.log('🏠 ReportLocation 닫기 - 현재 지도 상태를 홈으로 전달:', {
         lat: currentLat,
         lng: currentLng,
+        level: currentLevel,
       });
 
-      // 홈으로 이동하면서 현재 좌표 전달
+      // 홈으로 이동하면서 현재 좌표와 줌 레벨 전달
       navigate('/', {
         state: {
           returnLocation: {
             lat: currentLat,
             lng: currentLng,
+            level: currentLevel,
           },
         },
       });

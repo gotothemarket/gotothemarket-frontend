@@ -290,15 +290,16 @@ export const Home = () => {
       // 목업 첫 위치 설정 (returnLocation이 있으면 우선 사용)
       let initialLat = returnLocation?.lat || 37.4976451;
       let initialLng = returnLocation?.lng || 126.9527737;
+      let initialLevel = returnLocation?.level || 3; // 저장된 줌 레벨 사용
       let initialAddress = ''
       
-      console.log('🗺️ 지도 초기화:', { returnLocation, initialLat, initialLng });
+      console.log('🗺️ 지도 초기화:', { returnLocation, initialLat, initialLng, initialLevel });
 
       // 지도 생성 (현재 위치 또는 기본 위치)
       const { map } = createMap(mapRef.current, {
         lat: initialLat,
         lng: initialLng,
-        level: 3, // 기본 줌 레벨
+        level: initialLevel, // 저장된 줌 레벨 사용
       });
 
       // 확대/축소 범위 설정 (레벨 1-14)
@@ -351,14 +352,15 @@ export const Home = () => {
           // 전역 변수 업데이트
           window.currentHomeMap = map;
           
-          // localStorage에 현재 위치 저장
+          // localStorage에 현재 위치와 줌 레벨 저장
           const center = map.getCenter();
           const currentMapLocation = {
             lat: center.getLat(),
-            lng: center.getLng()
+            lng: center.getLng(),
+            level: map.getLevel()
           };
           localStorage.setItem('lastMapLocation', JSON.stringify(currentMapLocation));
-          console.log('📍 지도 위치 localStorage에 저장:', currentMapLocation);
+          console.log('📍 지도 위치와 줌 레벨 localStorage에 저장:', currentMapLocation);
         });
 
         window.kakao.maps.event.addListener(map, 'zoom_changed', () => {
@@ -366,14 +368,15 @@ export const Home = () => {
           // 전역 변수 업데이트
           window.currentHomeMap = map;
           
-          // localStorage에 현재 위치 저장
+          // localStorage에 현재 위치와 줌 레벨 저장
           const center = map.getCenter();
           const currentMapLocation = {
             lat: center.getLat(),
-            lng: center.getLng()
+            lng: center.getLng(),
+            level: map.getLevel()
           };
           localStorage.setItem('lastMapLocation', JSON.stringify(currentMapLocation));
-          console.log('📍 지도 위치 localStorage에 저장:', currentMapLocation);
+          console.log('📍 지도 위치와 줌 레벨 localStorage에 저장:', currentMapLocation);
         });
 
         map._hasEventListeners = true;

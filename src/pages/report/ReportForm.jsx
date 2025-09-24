@@ -125,15 +125,25 @@ const ReportForm = () => {
   };
 
   const handleClose = () => {
-    // 현재 위치를 유지하며 홈으로 이동
-    if (effectiveLocation) {
+    // localStorage 우선 사용, 없으면 effectiveLocation 사용
+    const savedLocation = localStorage.getItem('lastMapLocation');
+    let returnLocation = null;
+    
+    if (savedLocation) {
+      returnLocation = JSON.parse(savedLocation);
+      console.log('📍 ReportForm 닫기 - localStorage에서 가져온 위치와 줌:', returnLocation);
+    } else if (effectiveLocation) {
+      returnLocation = {
+        lat: effectiveLocation.lat,
+        lng: effectiveLocation.lng,
+        level: 3 // 기본 줌 레벨
+      };
+      console.log('📍 ReportForm 닫기 - effectiveLocation 사용:', returnLocation);
+    }
+    
+    if (returnLocation) {
       navigate('/', { 
-        state: { 
-          returnLocation: { 
-            lat: effectiveLocation.lat, 
-            lng: effectiveLocation.lng 
-          } 
-        } 
+        state: { returnLocation } 
       });
     } else {
       navigate('/');
@@ -227,15 +237,25 @@ const ReportForm = () => {
         alert(
           mode === 'edit' ? '가게 정보가 수정되었습니다!' : '가게가 성공적으로 제보되었습니다!',
         );
-        // 현재 위치를 유지하며 홈으로 이동
-        if (effectiveLocation) {
+        // localStorage 우선 사용, 없으면 effectiveLocation 사용
+        const savedLocation = localStorage.getItem('lastMapLocation');
+        let returnLocation = null;
+        
+        if (savedLocation) {
+          returnLocation = JSON.parse(savedLocation);
+          console.log('📍 ReportForm 제출 완료 - localStorage에서 가져온 위치와 줌:', returnLocation);
+        } else if (effectiveLocation) {
+          returnLocation = {
+            lat: effectiveLocation.lat,
+            lng: effectiveLocation.lng,
+            level: 3 // 기본 줌 레벨
+          };
+          console.log('📍 ReportForm 제출 완료 - effectiveLocation 사용:', returnLocation);
+        }
+        
+        if (returnLocation) {
           navigate('/', { 
-            state: { 
-              returnLocation: { 
-                lat: effectiveLocation.lat, 
-                lng: effectiveLocation.lng 
-              } 
-            } 
+            state: { returnLocation } 
           });
         } else {
           navigate('/');

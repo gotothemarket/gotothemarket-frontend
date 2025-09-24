@@ -103,7 +103,7 @@ export default function Navbar() {
               const savedLocation = localStorage.getItem('lastMapLocation');
               const returnLocation = savedLocation ? JSON.parse(savedLocation) : null;
               
-              console.log('🏠 Navbar 홈 버튼 클릭 - localStorage에서 가져온 위치:', returnLocation);
+              console.log('🏠 Navbar 홈 버튼 클릭 - localStorage에서 가져온 위치와 줌 레벨:', returnLocation);
               
               navigate('/', { 
                 state: { returnLocation } 
