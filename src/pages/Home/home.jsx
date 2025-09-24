@@ -287,10 +287,12 @@ export const Home = () => {
     const newMarkers = [];
 
     loadKakaoMaps(KAKAO_KEY).then(async () => {
-      // 목업 첫 위치 설정
-      let initialLat = 37.4976451;
-      let initialLng = 126.9527737;
+      // 목업 첫 위치 설정 (returnLocation이 있으면 우선 사용)
+      let initialLat = returnLocation?.lat || 37.4976451;
+      let initialLng = returnLocation?.lng || 126.9527737;
       let initialAddress = ''
+      
+      console.log('🗺️ 지도 초기화:', { returnLocation, initialLat, initialLng });
 
       // 지도 생성 (현재 위치 또는 기본 위치)
       const { map } = createMap(mapRef.current, {

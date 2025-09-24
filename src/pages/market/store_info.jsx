@@ -143,7 +143,21 @@ export default function StoreInfo() {
 
   const { store, photos, review_summary, reviews } = normalized;
 
-  const handleBack = () => navigate(-1);
+  const handleBack = () => {
+    // 가게 좌표가 있으면 홈으로 이동할 때 위치 보존
+    if (normalized?.store?.store_coord) {
+      navigate('/', { 
+        state: { 
+          returnLocation: { 
+            lat: normalized.store.store_coord.lat, 
+            lng: normalized.store.store_coord.lng 
+          } 
+        } 
+      });
+    } else {
+      navigate(-1);
+    }
+  };
   const handleBookmark = async () => {
     try {
       const action = isBookmarked ? 'remove' : 'add';

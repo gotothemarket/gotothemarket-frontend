@@ -125,7 +125,19 @@ const ReportForm = () => {
   };
 
   const handleClose = () => {
-    navigate('/'); // 홈으로 이동
+    // 현재 위치를 유지하며 홈으로 이동
+    if (effectiveLocation) {
+      navigate('/', { 
+        state: { 
+          returnLocation: { 
+            lat: effectiveLocation.lat, 
+            lng: effectiveLocation.lng 
+          } 
+        } 
+      });
+    } else {
+      navigate('/');
+    }
   };
 
   const handleSubmit = async (forceRegister = false) => {
@@ -215,7 +227,19 @@ const ReportForm = () => {
         alert(
           mode === 'edit' ? '가게 정보가 수정되었습니다!' : '가게가 성공적으로 제보되었습니다!',
         );
-        navigate('/');
+        // 현재 위치를 유지하며 홈으로 이동
+        if (effectiveLocation) {
+          navigate('/', { 
+            state: { 
+              returnLocation: { 
+                lat: effectiveLocation.lat, 
+                lng: effectiveLocation.lng 
+              } 
+            } 
+          });
+        } else {
+          navigate('/');
+        }
       }
     } catch (error) {
       console.error('❌ 가게 제보 에러:', error);
