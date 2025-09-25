@@ -426,9 +426,13 @@ const ReportLocation = () => {
                     {Array.from({ length: Math.ceil(duplicateStores.length / 2) }, (_, rowIndex) => (
                       <div key={rowIndex} className="flex flex-row justify-center items-start gap-[5px] w-[207.8px] h-[24px]">
                         {duplicateStores.slice(rowIndex * 2, (rowIndex + 1) * 2).map((store, index) => {
-                          // 가게 이름 5자 이상 시 말줄임표 처리
-                          const displayName = store.storeName && store.storeName.length > 5 
-                            ? store.storeName.substring(0, 5) + '...' 
+                          // 동적 텍스트 말줄임 처리: 1개면 10자, 2개면 5자
+                          const currentRowStores = duplicateStores.slice(rowIndex * 2, (rowIndex + 1) * 2);
+                          const isOnlyOneInRow = currentRowStores.length === 1;
+                          const maxLength = isOnlyOneInRow ? 10 : 5;
+                          
+                          const displayName = store.storeName && store.storeName.length > maxLength
+                            ? store.storeName.substring(0, maxLength) + '...' 
                             : store.storeName;
                           
                           return (
