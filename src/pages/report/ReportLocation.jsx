@@ -371,9 +371,9 @@ const ReportLocation = () => {
           </button>
         </div>
 
-        {/* 중복 가게 안내 모달 - 지도 위에 투명 배경으로 표시 */}
+        {/* 중복 가게 안내 모달 - 지도 위에 어두운 배경으로 표시 */}
         {showDuplicateModal && (
-          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}>
             {/* Frame 1057 */}
             <div 
               className="bg-[#FEFEFE] flex flex-col items-start gap-[10px]"
