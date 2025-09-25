@@ -21,7 +21,7 @@ const Ai = () => {
   const [storeSets, setStoreSets] = useState([]); // 최대 4개까지 저장
   const [currentSetIndex, setCurrentSetIndex] = useState(0); // 현재 선택 중인 세트 인덱스
   const [showAiResult, setShowAiResult] = useState(false); // AiResult 모달 표시 여부
-  const displayStep = Math.min(storeSets.length + 1, 4);
+  const displayStep = Math.min(storeSets.length, 4);
   const MAX_SETS = 4;
   const [locked, setLocked] = useState(false);
 
