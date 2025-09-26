@@ -78,7 +78,7 @@ export default function Navbar() {
     <header
       className={`fixed bottom-0 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-[430px] pt-[1rem] ${isMypage ? 'bg-black border-t border-[#1a1a1a]' : 'bg-white border-t border-gray-200'}`}
       style={{
-        paddingBottom: 'calc(4rem + env(safe-area-inset-bottom))'
+        paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))'
       }}
     >
       <div className="mx-auto h-full px-[5.3rem] flex items-center justify-between">
